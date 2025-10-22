@@ -3,12 +3,12 @@ from fastapi import HTTPException, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.services.auth_service import verify_token
 from app.schemas.user_schema import UserResponseSchema
-from app.common.mapper import schema
+from app.common.mapper import serialize
 
 bearer_scheme = HTTPBearer()
 
 
-async def get_current_user(
+async def current_user(
     credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
 ):
     token = credentials.credentials
@@ -18,5 +18,5 @@ async def get_current_user(
     user = await User.filter(email=payload.get("sub")).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    response = schema(UserResponseSchema, user)
+    response = serialize(UserResponseSchema, user)
     return response
