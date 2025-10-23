@@ -14,8 +14,14 @@ def serialize(schema_cls, tortoise_obj):
         return serialize_one(tortoise_obj)
 
 
-def deserialize(pydantic_obj):
-    return pydantic_obj.model_dump()
+def deserialize(pydantic_obj, exclude_unset=False):
+    def deserialize_one(obj):
+        return obj.model_dump(exclude_unset=exclude_unset)
+
+    if isinstance(pydantic_obj, list):
+        return [deserialize_one(obj) for obj in pydantic_obj]
+    else:
+        return deserialize_one(pydantic_obj)
 
 
 # def deserialize(pydantic_obj):
