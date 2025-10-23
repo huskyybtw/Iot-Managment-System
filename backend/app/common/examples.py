@@ -39,3 +39,31 @@ AUTH_RESPONSE_EXAMPLE = {
     "user": USER_EXAMPLE,
     "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
 }
+
+SENSOR_EXAMPLE = {
+    "id": 1,
+    "label": "Temperature Sensor",
+    "pin_id": {"gpio": 17},
+    "range_min": -40,
+    "range_max": 125,
+    "type": "temperature",
+    "in_out": True,
+}
+
+SENSOR_CREATE_EXAMPLE = {
+    "label": "Temperature Sensor",
+    "pin_id": {"gpio": 17},
+    "range_min": -40,
+    "range_max": 125,
+    "type": "temperature",
+    "in_out": True,
+}
+
+SENSOR_VALUE_EXAMPLE = {
+    "id": 1,
+    "sensor": 1,
+    "value": 42,
+    "timestamp": "2025-10-23T12:00:00Z",
+}
+
+SENSOR_VALUE_CREATE_EXAMPLE = {"sensor": 1, "value": 42}

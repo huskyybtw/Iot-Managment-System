@@ -41,3 +41,13 @@ async def me(user=Depends(current_user)):
     user_response = serialize(UserResponseSchema, user)
     token = create_access_token({"sub": user.email})
     return AuthResponse(user=user_response, access_token=token)
+
+
+@router.patch("/me", response_model=AuthResponse)
+async def patch_me(data: UserCreateSchema, user: User=Depends(current_user)):
+    user.update_from_dict(deserialize(data, exclude_unset=True))
+    user.password = hash_password(data.password) 
+    await user.save()
+    user_response = serialize(UserResponseSchema, user)
+    token = create_access_token({"sub": user.email})
+    return AuthResponse(user=user_response, access_token=token)

@@ -9,3 +9,4 @@ class User(Model):
     phone_number = fields.CharField(max_length=9, unique=True)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
+    devices = fields.ReverseRelation["Device"]

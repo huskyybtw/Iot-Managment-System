@@ -8,3 +8,4 @@ class Device(Model):
     mac_address = fields.CharField(max_length=12, unique=True)
 
     user = fields.ForeignKeyField("models.User", related_name="devices")
+    sensors = fields.ReverseRelation["Sensor"]

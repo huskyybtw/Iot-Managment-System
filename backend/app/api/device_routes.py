@@ -3,6 +3,7 @@ from app.models.device_model import Device
 from app.common.auth import current_user
 from app.common.pagination import PaginationParams, apply_pagination
 from app.schemas.device_schema import DeviceResponse, DeviceUpdate
+from app.schemas.sensor_schema import SensorResponse
 from app.common.mapper import serialize, deserialize
 
 router = APIRouter(prefix="/devices", tags=["devices"])
@@ -43,3 +44,13 @@ async def delete(id: int, user=Depends(current_user)):
         raise HTTPException(status_code=404, detail="Device not found")
     await device.delete()
     return serialize(DeviceResponse, device)
+
+@router.get("/{id}/sensors/{sensorId}", response_model=list[SensorResponse])
+async def sensor(id: int, sensorId: int, user=Depends(current_user)):
+    device = await Device.filter(id=id, user=user).first()
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+    sensor = await device.sensors.filter(id=sensorId).first()
+    if not sensor:
+        raise HTTPException(status_code=404, detail="Sensor not found")
+    return serialize(SensorResponse, sensor)
