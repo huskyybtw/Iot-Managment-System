@@ -18,5 +18,4 @@ async def current_user(
     user = await User.filter(email=payload.get("sub")).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    response = serialize(UserResponseSchema, user)
-    return response
+    return user

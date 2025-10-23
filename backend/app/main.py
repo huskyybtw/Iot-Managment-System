@@ -10,22 +10,13 @@ TORTOISE_ORM = {
     "connections": {"default": os.getenv("DATABASE_URL")},
     "apps": {
         "models": {
-            "models": ["app.models.user_model", "aerich.models"],
+            "models": ["app.models", "aerich.models"],
             "default_connection": "default",
         },
     },
 }
 
-from fastapi import FastAPI
-
-app = FastAPI(
-    swagger_ui_init_oauth={
-        "usePkceWithAuthorizationCodeGrant": True,
-        "clientId": "your-client-id",  # Optional, for OAuth2 flows
-        "scopes": "openid profile email",  # Optional
-        "authorizationUrl": "http://localhost:8000/auth/login",  # Optional
-    }
-)
+app = FastAPI()
 register_tortoise(
     app,
     db_url=os.getenv("DATABASE_URL"),
@@ -41,7 +32,7 @@ async def scalar_docs(
     proxyUrl: str = Query("https://proxy.scalar.com"),
 ):
     api_json_url = url or os.getenv(
-        "API_JSON_URL", "http://127.0.0.1:8000/openapi.json"
+        "API_JSON_URL", "http://localhost:8000/openapi.json"
     )
     scalar_custom_css = ""
     html = f"""
