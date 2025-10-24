@@ -15,5 +15,6 @@ class Sensor(Model):
     range_max = fields.IntField()
     type = fields.CharEnumField(enum_type=SensorType, max_length=32)
     in_out = fields.BooleanField()
+    
     device = fields.ForeignKeyField("models.Device", related_name="sensors", null=True)
     sensor_values = fields.ReverseRelation["SensorValue"]

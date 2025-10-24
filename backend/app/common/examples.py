@@ -67,3 +67,56 @@ SENSOR_VALUE_EXAMPLE = {
 }
 
 SENSOR_VALUE_CREATE_EXAMPLE = {"sensor": 1, "value": 42}
+
+AUTOMATION_EXAMPLE = {
+    "id": 1,
+    "user": 1,
+    "name": "Temperature Alert",
+    "sensor": 2,
+    "on_value": 30,
+    "condition": "gt",
+    "actions": [
+        {
+            "id": 1,
+            "type": "email",
+            "target": "user@example.com",
+            "value": "Alert: Temperature high!",
+            "automation": 1,
+            "triggers": [
+                {
+                    "id": 1,
+                    "timestamp": "2025-10-24T12:00:00Z",
+                    "action": 1,
+                }
+            ],
+        }
+    ],
+}
+
+ACTION_EXAMPLE = {
+    "id": 1,
+    "type": "email",
+    "target": "user@example.com",
+    "value": "Alert: Temperature high!",
+    "automation": 1,
+    "triggers": [
+        {
+            "id": 1,
+            "timestamp": "2025-10-24T12:00:00Z",
+            "action": 1,
+        }
+    ],
+}
+
+ACTION_TRIGGER_EXAMPLE = {
+    "id": 1,
+    "timestamp": "2025-10-24T12:00:00Z",
+    "action": {
+        "id": 1,
+        "type": "email",
+        "target": "user@example.com",
+        "value": "Alert: Temperature high!",
+        "automation": 1,
+        "triggers": [],
+    },
+}
