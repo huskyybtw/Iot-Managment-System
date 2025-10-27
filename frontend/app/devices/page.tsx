@@ -119,7 +119,6 @@ export default function DevicesPage() {
                   <TableHead>Device Name</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Location</TableHead>
                   <TableHead>Last Seen</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -139,9 +138,6 @@ export default function DevicesPage() {
                     <TableCell className="capitalize">sensor</TableCell>
                     <TableCell>
                       <Badge variant="default">online</Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      Unknown
                     </TableCell>
                     <TableCell className="text-sm">-</TableCell>
                     <TableCell className="font-mono text-sm">
