@@ -25,25 +25,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
+import { SettingsDialog } from "@/components/common/settings-dialog";
 
 export function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [smsNotifications, setSmsNotifications] = useState(false);
 
   const hideNav = pathname.startsWith("/auth") || pathname === "/";
 
@@ -262,163 +248,7 @@ export function Navigation() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Settings className="size-5" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Account Settings</DialogTitle>
-                  <DialogDescription>
-                    Manage your account preferences and security
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-6 py-4">
-                  <div className="space-y-4">
-                    <h3 className="font-semibold">Profile Information</h3>
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
-                        <div className="relative">
-                          <User className="text-muted-foreground absolute top-2.5 left-3 size-4" />
-                          <Input
-                            id="name"
-                            placeholder="John Doe"
-                            className="pl-9"
-                            defaultValue="John Doe"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
-                        <div className="relative">
-                          <Mail className="text-muted-foreground absolute top-2.5 left-3 size-4" />
-                          <Input
-                            id="email"
-                            type="email"
-                            placeholder="john@example.com"
-                            className="pl-9"
-                            defaultValue="john@example.com"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Phone Number</Label>
-                        <div className="relative">
-                          <Phone className="text-muted-foreground absolute top-2.5 left-3 size-4" />
-                          <Input
-                            id="phone"
-                            type="tel"
-                            placeholder="+1 (555) 000-0000"
-                            className="pl-9"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-4">
-                    <h3 className="font-semibold">Security</h3>
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <Label htmlFor="current-password">
-                          Current Password
-                        </Label>
-                        <div className="relative">
-                          <Lock className="text-muted-foreground absolute top-2.5 left-3 size-4" />
-                          <Input
-                            id="current-password"
-                            type="password"
-                            className="pl-9"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="new-password">New Password</Label>
-                        <div className="relative">
-                          <Lock className="text-muted-foreground absolute top-2.5 left-3 size-4" />
-                          <Input
-                            id="new-password"
-                            type="password"
-                            className="pl-9"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-4">
-                    <h3 className="font-semibold">Notification Preferences</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label
-                            htmlFor="email-notifications"
-                            className="font-medium"
-                          >
-                            Email Notifications
-                          </Label>
-                          <p className="text-muted-foreground text-xs">
-                            Receive alerts via email
-                          </p>
-                        </div>
-                        <Switch
-                          id="email-notifications"
-                          checked={emailNotifications}
-                          onCheckedChange={setEmailNotifications}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label
-                            htmlFor="push-notifications"
-                            className="font-medium"
-                          >
-                            Push Notifications
-                          </Label>
-                          <p className="text-muted-foreground text-xs">
-                            Receive push notifications
-                          </p>
-                        </div>
-                        <Switch
-                          id="push-notifications"
-                          checked={pushNotifications}
-                          onCheckedChange={setPushNotifications}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label
-                            htmlFor="sms-notifications"
-                            className="font-medium"
-                          >
-                            SMS Notifications
-                          </Label>
-                          <p className="text-muted-foreground text-xs">
-                            Receive alerts via SMS
-                          </p>
-                        </div>
-                        <Switch
-                          id="sms-notifications"
-                          checked={smsNotifications}
-                          onCheckedChange={setSmsNotifications}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end gap-2 pt-4">
-                    <Button>Save Changes</Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <SettingsDialog />
           </div>
         </div>
       </div>

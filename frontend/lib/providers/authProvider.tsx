@@ -4,10 +4,10 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useMeAuthMeGet } from "../auth/auth";
 import { useQueryClient } from "@tanstack/react-query";
-import { AuthResponse } from "../model";
+import { AuthResponse, UserResponseSchema } from "../model";
 
 interface AuthContextType {
-  user: AuthResponse | null;
+  user: UserResponseSchema | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -57,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   return (
     <AuthContext.Provider
       value={{
-        user: data?.data ?? null,
+        user: data?.data.user ?? null,
         isLoading,
         error: error?.message ?? null,
       }}

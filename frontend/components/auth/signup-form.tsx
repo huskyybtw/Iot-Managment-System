@@ -6,7 +6,7 @@ import { Lock, Mail, Phone } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { SignupFormData, signupSchema } from "@/app/auth/auth-schema";
+import { SignupFormData, signupSchema } from "@/lib/validators/auth-schema";
 import { useRouter } from "next/navigation";
 import { useRegisterAuthRegisterPost } from "@/lib/auth/auth";
 

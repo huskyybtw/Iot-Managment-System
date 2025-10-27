@@ -19,7 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import {
+  addDeviceSchema,
+  AddDeviceFormData,
+} from "@/lib/validators/add-device-schema";
 
 interface AddDeviceDialogProps {
   open: boolean;
@@ -27,12 +32,23 @@ interface AddDeviceDialogProps {
 }
 
 export function AddDeviceDialog({ open, onOpenChange }: AddDeviceDialogProps) {
-  const [name, setName] = useState("");
-  const [type, setType] = useState("");
-  const [mac, setMac] = useState("");
-  const [location, setLocation] = useState("");
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<AddDeviceFormData>({
+    resolver: yupResolver(addDeviceSchema),
+    defaultValues: {
+      name: "",
+      type: undefined,
+      mac: "",
+      location: "",
+    },
+  });
 
-  const handleRegister = () => {
+  const onSubmit = (data: AddDeviceFormData) => {
     // TODO: Implement device registration logic
     onOpenChange(false);
   };
@@ -51,14 +67,25 @@ export function AddDeviceDialog({ open, onOpenChange }: AddDeviceDialogProps) {
             <Label htmlFor="device-name">Device Name</Label>
             <Input
               id="device-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Temperature Sensor - Lab A"
+              {...register("name")}
             />
+            {errors.name && (
+              <span className="text-xs text-destructive">
+                {errors.name.message}
+              </span>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="device-type">Device Type</Label>
-            <Select value={type} onValueChange={setType}>
+            <Select
+              value={watch("type") ?? ""}
+              onValueChange={(value) =>
+                setValue("type", value as AddDeviceFormData["type"], {
+                  shouldValidate: true,
+                })
+              }
+            >
               <SelectTrigger id="device-type">
                 <SelectValue placeholder="Select device type" />
               </SelectTrigger>
@@ -68,32 +95,51 @@ export function AddDeviceDialog({ open, onOpenChange }: AddDeviceDialogProps) {
                 <SelectItem value="gateway">Gateway</SelectItem>
               </SelectContent>
             </Select>
+            {errors.type && (
+              <span className="text-xs text-destructive">
+                {errors.type.message}
+              </span>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="device-id">Device ID / MAC Address</Label>
             <Input
               id="device-id"
-              value={mac}
-              onChange={(e) => setMac(e.target.value)}
               placeholder="e.g., 00:1B:44:11:3A:B7"
+              {...register("mac")}
             />
+            {errors.mac && (
+              <span className="text-xs text-destructive">
+                {errors.mac.message}
+              </span>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="location">Location</Label>
             <Input
               id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
               placeholder="e.g., Building 1, Floor 2"
+              {...register("location")}
             />
+            {errors.location && (
+              <span className="text-xs text-destructive">
+                {errors.location.message}
+              </span>
+            )}
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleRegister}>Register Device</Button>
-        </DialogFooter>
+        <form onSubmit={handleSubmit(onSubmit as any)}>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit">Register Device</Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

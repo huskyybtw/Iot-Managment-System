@@ -1,6 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import {
+  editDeviceSchema,
+  EditDeviceFormData,
+} from "@/lib/validators/edit-device-schema";
 import {
   Dialog,
   DialogContent,
@@ -37,12 +42,24 @@ export function EditDeviceDialog({
   onOpenChange,
   device,
 }: EditDeviceDialogProps) {
-  const [name, setName] = useState(device?.name || "");
-  const [location, setLocation] = useState(device?.location || "");
-  const [macAddress, setMacAddress] = useState(device?.macAddress || "");
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<EditDeviceFormData>({
+    resolver: yupResolver(editDeviceSchema),
+    defaultValues: {
+      name: device?.name || "",
+      location: device?.location || "",
+      macAddress: device?.macAddress || "",
+      status: (device?.status as EditDeviceFormData["status"]) ?? "online",
+    },
+  });
 
-  const handleSave = () => {
-    console.log("Updating device:", { name, location, macAddress });
+  const onSubmit = (data: EditDeviceFormData) => {
+    // TODO: Implement device update logic
     onOpenChange(false);
   };
 
@@ -61,36 +78,55 @@ export function EditDeviceDialog({
               <Label htmlFor="edit-name">Device Name</Label>
               <Input
                 id="edit-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Temperature Sensor - Lab A"
+                {...register("name")}
               />
+              {errors.name && (
+                <span className="text-xs text-destructive">
+                  {errors.name.message}
+                </span>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-location">Location</Label>
               <Input
                 id="edit-location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
                 placeholder="e.g., Building 1, Floor 2"
+                {...register("location")}
               />
+              {errors.location && (
+                <span className="text-xs text-destructive">
+                  {errors.location.message}
+                </span>
+              )}
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit-mac">MAC Address</Label>
             <Input
               id="edit-mac"
-              value={macAddress}
-              onChange={(e) => setMacAddress(e.target.value)}
               placeholder="e.g., 00:1B:44:11:3A:B7"
               className="font-mono"
+              {...register("macAddress")}
             />
+            {errors.macAddress && (
+              <span className="text-xs text-destructive">
+                {errors.macAddress.message}
+              </span>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit-status">Status</Label>
-            <Select defaultValue={device?.status || "online"}>
+            <Select
+              value={watch("status") ?? ""}
+              onValueChange={(value) =>
+                setValue("status", value as EditDeviceFormData["status"], {
+                  shouldValidate: true,
+                })
+              }
+            >
               <SelectTrigger id="edit-status">
-                <SelectValue />
+                <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="online">Online</SelectItem>
@@ -98,14 +134,25 @@ export function EditDeviceDialog({
                 <SelectItem value="warning">Warning</SelectItem>
               </SelectContent>
             </Select>
+            {errors.status && (
+              <span className="text-xs text-destructive">
+                {errors.status.message}
+              </span>
+            )}
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>Save Changes</Button>
-        </DialogFooter>
+        <form onSubmit={handleSubmit(onSubmit as any)}>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit">Save Changes</Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
