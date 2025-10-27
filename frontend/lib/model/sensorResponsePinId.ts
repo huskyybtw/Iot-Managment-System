@@ -4,5 +4,6 @@
  * FastAPI
  * OpenAPI spec version: 0.1.0
  */
+import type { SensorResponsePinIdAnyOf } from './sensorResponsePinIdAnyOf';
 
-export type SensorResponsePinId = { [key: string]: unknown };
+export type SensorResponsePinId = SensorResponsePinIdAnyOf | unknown[];

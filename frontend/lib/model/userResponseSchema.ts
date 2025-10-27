@@ -6,10 +6,17 @@
  */
 
 export interface UserResponseSchema {
-  email: string;
-  password: string;
-  phone_number: string;
+  /**
+   * @minimum -2147483648
+   * @maximum 2147483647
+   */
   id: number;
-  created_at: string;
-  updated_at: string;
+  /** @maxLength 128 */
+  email: string;
+  /** @maxLength 128 */
+  password: string;
+  /** @maxLength 9 */
+  phone_number: string;
+  readonly created_at: string;
+  readonly updated_at: string;
 }

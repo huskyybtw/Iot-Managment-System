@@ -31,10 +31,10 @@ import type {
 } from 'axios';
 
 import type {
-  AuthLoginSchema,
-  AuthResponse,
+  AuthResponseSchema,
   HTTPValidationError,
-  UserCreateSchema
+  UserCreateSchema,
+  UserUpdateSchema
 } from '.././model';
 
 
@@ -46,7 +46,7 @@ import type {
  */
 export const registerAuthRegisterPost = (
     userCreateSchema: UserCreateSchema, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<AuthResponse>> => {
+ ): Promise<AxiosResponse<AuthResponseSchema>> => {
     
     
     return axios.post(
@@ -106,21 +106,21 @@ export const useRegisterAuthRegisterPost = <TError = AxiosError<HTTPValidationEr
  * @summary Login
  */
 export const loginAuthLoginPost = (
-    authLoginSchema: AuthLoginSchema, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<AuthResponse>> => {
+    userUpdateSchema: UserUpdateSchema, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<AuthResponseSchema>> => {
     
     
     return axios.post(
       `http://127.0.0.1:8000/auth/login`,
-      authLoginSchema,options
+      userUpdateSchema,options
     );
   }
 
 
 
 export const getLoginAuthLoginPostMutationOptions = <TError = AxiosError<HTTPValidationError>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loginAuthLoginPost>>, TError,{data: AuthLoginSchema}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof loginAuthLoginPost>>, TError,{data: AuthLoginSchema}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loginAuthLoginPost>>, TError,{data: UserUpdateSchema}, TContext>, axios?: AxiosRequestConfig}
+): UseMutationOptions<Awaited<ReturnType<typeof loginAuthLoginPost>>, TError,{data: UserUpdateSchema}, TContext> => {
 
 const mutationKey = ['loginAuthLoginPost'];
 const {mutation: mutationOptions, axios: axiosOptions} = options ?
@@ -132,7 +132,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof loginAuthLoginPost>>, {data: AuthLoginSchema}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof loginAuthLoginPost>>, {data: UserUpdateSchema}> = (props) => {
           const {data} = props ?? {};
 
           return  loginAuthLoginPost(data,axiosOptions)
@@ -144,18 +144,18 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type LoginAuthLoginPostMutationResult = NonNullable<Awaited<ReturnType<typeof loginAuthLoginPost>>>
-    export type LoginAuthLoginPostMutationBody = AuthLoginSchema
+    export type LoginAuthLoginPostMutationBody = UserUpdateSchema
     export type LoginAuthLoginPostMutationError = AxiosError<HTTPValidationError>
 
     /**
  * @summary Login
  */
 export const useLoginAuthLoginPost = <TError = AxiosError<HTTPValidationError>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loginAuthLoginPost>>, TError,{data: AuthLoginSchema}, TContext>, axios?: AxiosRequestConfig}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loginAuthLoginPost>>, TError,{data: UserUpdateSchema}, TContext>, axios?: AxiosRequestConfig}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof loginAuthLoginPost>>,
         TError,
-        {data: AuthLoginSchema},
+        {data: UserUpdateSchema},
         TContext
       > => {
 
@@ -168,7 +168,7 @@ export const useLoginAuthLoginPost = <TError = AxiosError<HTTPValidationError>,
  */
 export const meAuthMeGet = (
      options?: AxiosRequestConfig
- ): Promise<AxiosResponse<AuthResponse>> => {
+ ): Promise<AxiosResponse<AuthResponseSchema>> => {
     
     
     return axios.get(
@@ -256,21 +256,21 @@ export function useMeAuthMeGet<TData = Awaited<ReturnType<typeof meAuthMeGet>>, 
  * @summary Patch Me
  */
 export const patchMeAuthMePatch = (
-    userCreateSchema: UserCreateSchema, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<AuthResponse>> => {
+    userUpdateSchema: UserUpdateSchema, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<AuthResponseSchema>> => {
     
     
     return axios.patch(
       `http://127.0.0.1:8000/auth/me`,
-      userCreateSchema,options
+      userUpdateSchema,options
     );
   }
 
 
 
 export const getPatchMeAuthMePatchMutationOptions = <TError = AxiosError<HTTPValidationError>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchMeAuthMePatch>>, TError,{data: UserCreateSchema}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof patchMeAuthMePatch>>, TError,{data: UserCreateSchema}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchMeAuthMePatch>>, TError,{data: UserUpdateSchema}, TContext>, axios?: AxiosRequestConfig}
+): UseMutationOptions<Awaited<ReturnType<typeof patchMeAuthMePatch>>, TError,{data: UserUpdateSchema}, TContext> => {
 
 const mutationKey = ['patchMeAuthMePatch'];
 const {mutation: mutationOptions, axios: axiosOptions} = options ?
@@ -282,7 +282,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchMeAuthMePatch>>, {data: UserCreateSchema}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchMeAuthMePatch>>, {data: UserUpdateSchema}> = (props) => {
           const {data} = props ?? {};
 
           return  patchMeAuthMePatch(data,axiosOptions)
@@ -294,18 +294,18 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type PatchMeAuthMePatchMutationResult = NonNullable<Awaited<ReturnType<typeof patchMeAuthMePatch>>>
-    export type PatchMeAuthMePatchMutationBody = UserCreateSchema
+    export type PatchMeAuthMePatchMutationBody = UserUpdateSchema
     export type PatchMeAuthMePatchMutationError = AxiosError<HTTPValidationError>
 
     /**
  * @summary Patch Me
  */
 export const usePatchMeAuthMePatch = <TError = AxiosError<HTTPValidationError>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchMeAuthMePatch>>, TError,{data: UserCreateSchema}, TContext>, axios?: AxiosRequestConfig}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchMeAuthMePatch>>, TError,{data: UserUpdateSchema}, TContext>, axios?: AxiosRequestConfig}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof patchMeAuthMePatch>>,
         TError,
-        {data: UserCreateSchema},
+        {data: UserUpdateSchema},
         TContext
       > => {
 

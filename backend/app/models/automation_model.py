@@ -1,5 +1,11 @@
 from tortoise import fields, Model
-from app.schemas.automation_schema import ConditionType
+from enum import Enum
+
+
+class ConditionType(str, Enum):
+    LT = "lt"
+    GT = "gt"
+    EQ = "eq"
 
 
 class Automation(Model):

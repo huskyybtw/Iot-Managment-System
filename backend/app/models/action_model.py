@@ -1,6 +1,10 @@
 from tortoise import fields, models
-from app.schemas.action_schema import ActionType
+from enum import Enum
 
+
+class ActionType(str, Enum):
+    EMAIL = "email"
+    SMS = "sms"
 
 
 class Action(models.Model):

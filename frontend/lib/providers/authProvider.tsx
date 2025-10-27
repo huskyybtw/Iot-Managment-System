@@ -31,16 +31,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   useEffect(() => {
-    const interceptorId = axios.interceptors.request.use((config) => {
+    axios.interceptors.request.use((config) => {
       if (token) {
         config.headers = config.headers || {};
         config.headers["Authorization"] = `Bearer ${token}`;
       }
       return config;
     });
-    return () => {
-      axios.interceptors.request.eject(interceptorId);
-    };
   }, [token]);
 
   const { data, isLoading, error, refetch } = useMeAuthMeGet();

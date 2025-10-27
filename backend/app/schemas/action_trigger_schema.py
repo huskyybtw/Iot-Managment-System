@@ -1,15 +1,9 @@
-from pydantic import BaseModel
-from app.common.examples import ACTION_TRIGGER_EXAMPLE
+from tortoise.contrib.pydantic import pydantic_model_creator
+from app.models.action_trigger_model import ActionTrigger
 
-
-class ActionTriggerResponseSchema(BaseModel):
-    id: int
-    timestamp: str
-
-    model_config = {"json_schema_extra": {"example": ACTION_TRIGGER_EXAMPLE}}
-
-
-class ActionTriggerCreateSchema(BaseModel):
-    action: int
-
-    model_config = {"json_schema_extra": {"example": ACTION_TRIGGER_EXAMPLE}}
+ActionTriggerResponseSchema = pydantic_model_creator(
+    ActionTrigger, name="ActionTriggerResponseSchema"
+)
+ActionTriggerCreateSchema = pydantic_model_creator(
+    ActionTrigger, name="ActionTriggerCreateSchema", exclude_readonly=True
+)

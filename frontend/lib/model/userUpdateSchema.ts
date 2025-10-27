@@ -5,11 +5,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface UserCreateSchema {
+export interface UserUpdateSchema {
   /** @maxLength 128 */
   email: string;
   /** @maxLength 128 */
   password: string;
-  /** @maxLength 9 */
-  phone_number: string;
 }

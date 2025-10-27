@@ -6,5 +6,8 @@
  */
 
 export interface DeviceUpdate {
+  /** @maxLength 255 */
   label: string;
+  /** @maxLength 12 */
+  mac_address: string;
 }

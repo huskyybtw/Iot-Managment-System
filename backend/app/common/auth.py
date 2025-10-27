@@ -3,7 +3,6 @@ from fastapi import HTTPException, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.services.auth_service import verify_token
 from app.schemas.user_schema import UserResponseSchema
-from app.common.mapper import serialize
 
 bearer_scheme = HTTPBearer()
 

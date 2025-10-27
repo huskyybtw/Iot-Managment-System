@@ -4,14 +4,33 @@
  * FastAPI
  * OpenAPI spec version: 0.1.0
  */
+import type { SensorResponseLabel } from './sensorResponseLabel';
 import type { SensorResponsePinId } from './sensorResponsePinId';
+import type { SensorType } from './sensorType';
 
 export interface SensorResponse {
+  /**
+   * @minimum -2147483648
+   * @maximum 2147483647
+   */
   id: number;
-  label: string;
+  /** @nullable */
+  label?: SensorResponseLabel;
   pin_id: SensorResponsePinId;
+  /**
+   * @minimum -2147483648
+   * @maximum 2147483647
+   */
   range_min: number;
+  /**
+   * @minimum -2147483648
+   * @maximum 2147483647
+   */
   range_max: number;
-  type: string;
+  /**
+   * OTHER: other
+   * @maxLength 32
+   */
+  type: SensorType;
   in_out: boolean;
 }
