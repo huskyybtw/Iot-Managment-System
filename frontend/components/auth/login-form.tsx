@@ -38,7 +38,7 @@ export function LoginForm({ onToggle }: LoginFormProps) {
             localStorage.setItem("accessToken", token);
             toast.success("Logged in successfully!");
             reset();
-            router.push("/auth/dashboard");
+            router.push("/dashboard");
           } else {
             toast.error("No token in response.");
           }

@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     if (!isLoading && (!data || !data.data?.user?.id)) {
-      router.replace("/auth");
+      router.replace("/");
     }
   }, [isLoading, data, router]);
 

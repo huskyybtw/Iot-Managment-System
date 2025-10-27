@@ -48,7 +48,7 @@ export function SignupForm({ onToggle }: SignupFormProps) {
             localStorage.setItem("accessToken", token);
             toast.success("Account created successfully!");
             reset();
-            router.push("/auth/dashboard");
+            router.push("/dashboard");
           } else {
             toast.error("No token in response.");
           }
