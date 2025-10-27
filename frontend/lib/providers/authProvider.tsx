@@ -1,14 +1,13 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+"use client";
+import React, { createContext, useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
-
-interface User {
-  id: string;
-  email: string;
-  // Add other user fields as needed
-}
+import axios from "axios";
+import { useMeAuthMeGet } from "../auth/auth";
+import { useQueryClient } from "@tanstack/react-query";
+import { AuthResponse } from "../model";
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthResponse | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -18,41 +17,54 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [token, setToken] = React.useState<string | undefined>(() =>
+    typeof window !== "undefined"
+      ? localStorage.getItem("accessToken") || undefined
+      : undefined
+  );
 
   useEffect(() => {
-    const fetchUser = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch("/me");
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.id) {
-            setUser(data);
-          } else {
-            setUser(null);
-            router.replace("/");
-          }
-        } else {
-          setUser(null);
-          router.replace("/");
-        }
-      } catch (err) {
-        setError("Failed to fetch user");
-        setUser(null);
-        router.replace("/");
-      } finally {
-        setIsLoading(false);
+    if (typeof window !== "undefined") {
+      setToken(localStorage.getItem("accessToken") || undefined);
+    }
+  }, []);
+
+  useEffect(() => {
+    const interceptorId = axios.interceptors.request.use((config) => {
+      if (token) {
+        config.headers = config.headers || {};
+        config.headers["Authorization"] = `Bearer ${token}`;
       }
+      return config;
+    });
+    return () => {
+      axios.interceptors.request.eject(interceptorId);
     };
-    fetchUser();
-  }, [router]);
+  }, [token]);
+
+  const { data, isLoading, error, refetch } = useMeAuthMeGet();
+
+  useEffect(() => {
+    if (token) {
+      refetch();
+    }
+  }, [token, refetch]);
+
+  useEffect(() => {
+    if (!isLoading && (!data || !data.data?.user?.id)) {
+      router.replace("/auth");
+    }
+  }, [isLoading, data, router]);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, error }}>
+    <AuthContext.Provider
+      value={{
+        user: data?.data ?? null,
+        isLoading,
+        error: error?.message ?? null,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

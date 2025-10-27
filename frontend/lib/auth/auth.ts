@@ -9,9 +9,14 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
@@ -86,7 +91,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
  */
 export const useRegisterAuthRegisterPost = <TError = AxiosError<HTTPValidationError>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerAuthRegisterPost>>, TError,{data: UserCreateSchema}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof registerAuthRegisterPost>>,
         TError,
         {data: UserCreateSchema},
@@ -95,7 +100,7 @@ export const useRegisterAuthRegisterPost = <TError = AxiosError<HTTPValidationEr
 
       const mutationOptions = getRegisterAuthRegisterPostMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * @summary Login
@@ -147,7 +152,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
  */
 export const useLoginAuthLoginPost = <TError = AxiosError<HTTPValidationError>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loginAuthLoginPost>>, TError,{data: AuthLoginSchema}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof loginAuthLoginPost>>,
         TError,
         {data: AuthLoginSchema},
@@ -156,7 +161,7 @@ export const useLoginAuthLoginPost = <TError = AxiosError<HTTPValidationError>,
 
       const mutationOptions = getLoginAuthLoginPostMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * @summary Me
@@ -181,7 +186,7 @@ export const getMeAuthMeGetQueryKey = () => {
     }
 
     
-export const getMeAuthMeGetQueryOptions = <TData = Awaited<ReturnType<typeof meAuthMeGet>>, TError = AxiosError<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof meAuthMeGet>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getMeAuthMeGetQueryOptions = <TData = Awaited<ReturnType<typeof meAuthMeGet>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof meAuthMeGet>>, TError, TData>>, axios?: AxiosRequestConfig}
 ) => {
 
 const {query: queryOptions, axios: axiosOptions} = options ?? {};
@@ -196,25 +201,49 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof meAuthMeGet>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof meAuthMeGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type MeAuthMeGetQueryResult = NonNullable<Awaited<ReturnType<typeof meAuthMeGet>>>
 export type MeAuthMeGetQueryError = AxiosError<unknown>
 
 
+export function useMeAuthMeGet<TData = Awaited<ReturnType<typeof meAuthMeGet>>, TError = AxiosError<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof meAuthMeGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof meAuthMeGet>>,
+          TError,
+          Awaited<ReturnType<typeof meAuthMeGet>>
+        > , 'initialData'
+      >, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMeAuthMeGet<TData = Awaited<ReturnType<typeof meAuthMeGet>>, TError = AxiosError<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof meAuthMeGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof meAuthMeGet>>,
+          TError,
+          Awaited<ReturnType<typeof meAuthMeGet>>
+        > , 'initialData'
+      >, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMeAuthMeGet<TData = Awaited<ReturnType<typeof meAuthMeGet>>, TError = AxiosError<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof meAuthMeGet>>, TError, TData>>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Me
  */
 
 export function useMeAuthMeGet<TData = Awaited<ReturnType<typeof meAuthMeGet>>, TError = AxiosError<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof meAuthMeGet>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof meAuthMeGet>>, TError, TData>>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getMeAuthMeGetQueryOptions(options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -223,3 +252,65 @@ export function useMeAuthMeGet<TData = Awaited<ReturnType<typeof meAuthMeGet>>, 
 
 
 
+/**
+ * @summary Patch Me
+ */
+export const patchMeAuthMePatch = (
+    userCreateSchema: UserCreateSchema, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<AuthResponse>> => {
+    
+    
+    return axios.patch(
+      `http://127.0.0.1:8000/auth/me`,
+      userCreateSchema,options
+    );
+  }
+
+
+
+export const getPatchMeAuthMePatchMutationOptions = <TError = AxiosError<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchMeAuthMePatch>>, TError,{data: UserCreateSchema}, TContext>, axios?: AxiosRequestConfig}
+): UseMutationOptions<Awaited<ReturnType<typeof patchMeAuthMePatch>>, TError,{data: UserCreateSchema}, TContext> => {
+
+const mutationKey = ['patchMeAuthMePatch'];
+const {mutation: mutationOptions, axios: axiosOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, axios: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchMeAuthMePatch>>, {data: UserCreateSchema}> = (props) => {
+          const {data} = props ?? {};
+
+          return  patchMeAuthMePatch(data,axiosOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PatchMeAuthMePatchMutationResult = NonNullable<Awaited<ReturnType<typeof patchMeAuthMePatch>>>
+    export type PatchMeAuthMePatchMutationBody = UserCreateSchema
+    export type PatchMeAuthMePatchMutationError = AxiosError<HTTPValidationError>
+
+    /**
+ * @summary Patch Me
+ */
+export const usePatchMeAuthMePatch = <TError = AxiosError<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchMeAuthMePatch>>, TError,{data: UserCreateSchema}, TContext>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof patchMeAuthMePatch>>,
+        TError,
+        {data: UserCreateSchema},
+        TContext
+      > => {
+
+      const mutationOptions = getPatchMeAuthMePatchMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    

@@ -8,8 +8,13 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
@@ -55,7 +60,7 @@ export const getScalarDocsGetQueryKey = (params?: ScalarDocsGetParams,) => {
     }
 
     
-export const getScalarDocsGetQueryOptions = <TData = Awaited<ReturnType<typeof scalarDocsGet>>, TError = AxiosError<HTTPValidationError>>(params?: ScalarDocsGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof scalarDocsGet>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getScalarDocsGetQueryOptions = <TData = Awaited<ReturnType<typeof scalarDocsGet>>, TError = AxiosError<HTTPValidationError>>(params?: ScalarDocsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof scalarDocsGet>>, TError, TData>>, axios?: AxiosRequestConfig}
 ) => {
 
 const {query: queryOptions, axios: axiosOptions} = options ?? {};
@@ -70,25 +75,49 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof scalarDocsGet>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof scalarDocsGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ScalarDocsGetQueryResult = NonNullable<Awaited<ReturnType<typeof scalarDocsGet>>>
 export type ScalarDocsGetQueryError = AxiosError<HTTPValidationError>
 
 
+export function useScalarDocsGet<TData = Awaited<ReturnType<typeof scalarDocsGet>>, TError = AxiosError<HTTPValidationError>>(
+ params: undefined |  ScalarDocsGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof scalarDocsGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof scalarDocsGet>>,
+          TError,
+          Awaited<ReturnType<typeof scalarDocsGet>>
+        > , 'initialData'
+      >, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useScalarDocsGet<TData = Awaited<ReturnType<typeof scalarDocsGet>>, TError = AxiosError<HTTPValidationError>>(
+ params?: ScalarDocsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof scalarDocsGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof scalarDocsGet>>,
+          TError,
+          Awaited<ReturnType<typeof scalarDocsGet>>
+        > , 'initialData'
+      >, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useScalarDocsGet<TData = Awaited<ReturnType<typeof scalarDocsGet>>, TError = AxiosError<HTTPValidationError>>(
+ params?: ScalarDocsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof scalarDocsGet>>, TError, TData>>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Scalar Docs
  */
 
 export function useScalarDocsGet<TData = Awaited<ReturnType<typeof scalarDocsGet>>, TError = AxiosError<HTTPValidationError>>(
- params?: ScalarDocsGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof scalarDocsGet>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+ params?: ScalarDocsGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof scalarDocsGet>>, TError, TData>>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getScalarDocsGetQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 

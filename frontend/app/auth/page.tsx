@@ -1,180 +1,98 @@
 "use client";
 
-import type React from "react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Cpu } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Cpu } from "lucide-react";
+import Link from "next/link";
+import { LoginForm } from "@/components/auth/login-form";
+import { SignupForm } from "@/components/auth/signup-form";
 
 export default function AuthPage() {
-  const router = useRouter();
-
-  const [loginData, setLoginData] = useState({
-    email: "",
-    password: "",
-  });
-
-  const [signupData, setSignupData] = useState({
-    email: "",
-    password: "",
-    confirmPassword: "",
-    phoneNumber: "",
-  });
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    router.push("/dashboard");
-  };
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    router.push("/dashboard");
-  };
+  const [isLogin, setIsLogin] = useState(true);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4 text-center">
-          <div className="mx-auto flex size-12 items-center justify-center rounded-lg bg-primary/10">
-            <Cpu className="size-6 text-primary" />
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-2">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-4">
+          <div className="flex items-center justify-center space-x-2 mb-1">
+            <div className="p-1.5 bg-primary rounded-lg">
+              <Cpu className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <h1 className="text-lg font-bold text-foreground">
+              IoT Management Platform
+            </h1>
           </div>
-          <div>
-            <CardTitle className="text-2xl">IoT Management Platform</CardTitle>
-            <CardDescription>
-              Sign in or create an account to get started
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="login" className="mt-6">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="name@company.com"
-                    value={loginData.email}
-                    onChange={(e) =>
-                      setLoginData((prev) => ({
-                        ...prev,
-                        email: e.target.value,
-                      }))
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    value={loginData.password}
-                    onChange={(e) =>
-                      setLoginData((prev) => ({
-                        ...prev,
-                        password: e.target.value,
-                      }))
-                    }
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full">
-                  Log in
-                </Button>
-              </form>
-            </TabsContent>
-
-            <TabsContent value="signup" className="mt-6">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="name@company.com"
-                    value={signupData.email}
-                    onChange={(e) =>
-                      setSignupData((prev) => ({
-                        ...prev,
-                        email: e.target.value,
-                      }))
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-phone">Phone Number (Optional)</Label>
-                  <Input
-                    id="signup-phone"
-                    type="tel"
-                    placeholder="+1 (555) 000-0000"
-                    value={signupData.phoneNumber}
-                    onChange={(e) =>
-                      setSignupData((prev) => ({
-                        ...prev,
-                        phoneNumber: e.target.value,
-                      }))
-                    }
-                  />
-                  <p className="text-muted-foreground text-xs">
-                    For SMS notifications
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={signupData.password}
-                    onChange={(e) =>
-                      setSignupData((prev) => ({
-                        ...prev,
-                        password: e.target.value,
-                      }))
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-confirm">Confirm Password</Label>
-                  <Input
-                    id="signup-confirm"
-                    type="password"
-                    value={signupData.confirmPassword}
-                    onChange={(e) =>
-                      setSignupData((prev) => ({
-                        ...prev,
-                        confirmPassword: e.target.value,
-                      }))
-                    }
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full">
-                  Register
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+          <p className="text-muted-foreground text-xs">
+            {isLogin ? "Sign in to your account" : "Create a new account"}
+          </p>
+        </div>
+        <Card className="w-full shadow-lg">
+          <CardHeader className="space-y-4 pb-4">
+            <div className="relative bg-muted/50 rounded-xl p-1 border">
+              <div
+                className={`absolute top-1 bottom-1 bg-background rounded-lg shadow-sm transition-all duration-200 ease-in-out ${
+                  isLogin
+                    ? "left-1 right-1/2 mr-0.5"
+                    : "right-1 left-1/2 ml-0.5"
+                }`}
+              />
+              <div className="relative flex">
+                <button
+                  onClick={() => setIsLogin(true)}
+                  className={`flex-1 py-2.5 px-3 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                    isLogin
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Logowanie
+                </button>
+                <button
+                  onClick={() => setIsLogin(false)}
+                  className={`flex-1 py-2.5 px-3 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                    !isLogin
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Rejestracja
+                </button>
+              </div>
+            </div>
+            <div className="text-center">
+              <CardTitle className="text-xl font-bold">
+                {isLogin ? "Witaj ponownie!" : "Dołącz do gry"}
+              </CardTitle>
+              <CardDescription className="mt-1 text-sm">
+                {isLogin
+                  ? "Wprowadź swoje dane aby się zalogować"
+                  : "Wypełnij formularz aby utworzyć konto"}
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3 px-6 pb-6">
+            {isLogin ? (
+              <LoginForm onToggle={() => setIsLogin(false)} />
+            ) : (
+              <SignupForm onToggle={() => setIsLogin(true)} />
+            )}
+          </CardContent>
+        </Card>
+        <div className="text-center mt-3">
+          <Link
+            href="/"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            ← Powrót do strony głównej
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

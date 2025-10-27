@@ -1,5 +1,5 @@
 from tortoise import fields, Model
-from app.schemas.action_schema import ConditionType
+from app.schemas.automation_schema import ConditionType
 
 
 class Automation(Model):

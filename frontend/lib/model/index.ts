@@ -7,8 +7,13 @@
 
 export * from './authLoginSchema';
 export * from './authResponse';
+export * from './deviceResponse';
+export * from './deviceUpdate';
+export * from './devicesDevicesGetParams';
 export * from './hTTPValidationError';
 export * from './scalarDocsGetParams';
+export * from './sensorResponse';
+export * from './sensorResponsePinId';
 export * from './userCreateSchema';
 export * from './userResponseSchema';
 export * from './validationError';
