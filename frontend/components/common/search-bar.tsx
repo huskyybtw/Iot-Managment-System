@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { Input } from "@/components/ui/input";
 
 export interface SearchBarProps {
   value: string;
@@ -46,18 +47,18 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   return (
     <div className={`relative flex items-center ${className}`}>
       {icon && (
-        <span className="absolute left-3 text-muted-foreground">{icon}</span>
+        <span className="absolute left-3 text-muted-foreground z-10">
+          {icon}
+        </span>
       )}
-      <input
+      <Input
         type="text"
         value={internalValue}
         onChange={handleChange}
         placeholder={placeholder}
         autoFocus={autoFocus}
         disabled={disabled}
-        className={`pl-${
-          icon ? "9" : "3"
-        } pr-3 py-2 rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary w-full transition-all`}
+        className={icon ? "pl-9" : ""}
       />
     </div>
   );
