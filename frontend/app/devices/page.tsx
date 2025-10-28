@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useDevicesDevicesGet } from "@/lib/devices/devices";
-
+import type { DeviceResponse } from "@/lib/model";
 import { useState } from "react";
 import {
   Plus,
@@ -30,6 +30,7 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { EditDeviceDialog } from "@/components/devices/edit-device-dialog";
 import { AddDeviceDialog } from "@/components/devices/add-device-dialog";
+import { DeleteDeviceDialog } from "@/components/devices/delete-device-dialog";
 import {
   Table,
   TableBody,
@@ -43,7 +44,10 @@ import axios from "axios";
 export default function DevicesPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedDevice, setSelectedDevice] = useState<any>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState<DeviceResponse | null>(
+    null
+  );
   const [search, setSearch] = useState("");
   const router = useRouter();
 
@@ -52,10 +56,16 @@ export default function DevicesPage() {
   });
   const devices = data?.data ?? [];
 
-  const handleEdit = (device: any, e: React.MouseEvent) => {
+  const handleEdit = (device: DeviceResponse, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedDevice(device);
     setIsEditDialogOpen(true);
+  };
+
+  const handleDelete = (device: DeviceResponse, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedDevice(device);
+    setIsDeleteDialogOpen(true);
   };
 
   if (isLoading) {
@@ -133,7 +143,7 @@ export default function DevicesPage() {
                     }
                   >
                     <TableCell className="font-medium">
-                      {device.label}
+                      {device.label || "Unnamed Device"}
                     </TableCell>
                     <TableCell className="capitalize">sensor</TableCell>
                     <TableCell>
@@ -156,20 +166,8 @@ export default function DevicesPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="size-8"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                        >
-                          <PowerOff className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
                           className="text-destructive size-8"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
+                          onClick={(e) => handleDelete(device, e)}
                         >
                           <Trash2 className="size-4" />
                         </Button>
@@ -196,6 +194,12 @@ export default function DevicesPage() {
       <EditDeviceDialog
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
+        device={selectedDevice}
+      />
+
+      <DeleteDeviceDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
         device={selectedDevice}
       />
     </div>

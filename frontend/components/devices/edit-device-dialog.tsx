@@ -1,11 +1,5 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import {
-  editDeviceSchema,
-  EditDeviceFormData,
-} from "@/lib/validators/edit-device-schema";
 import {
   Dialog,
   DialogContent,
@@ -17,24 +11,25 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  editDeviceSchema,
+  EditDeviceFormData,
+} from "@/lib/validators/device-schema";
+import {
+  useUpdateDevicesIdPatch,
+  getDevicesDevicesGetQueryKey,
+} from "@/lib/devices/devices";
+import type { DeviceResponse } from "@/lib/model";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 interface EditDeviceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  device?: {
-    id: string;
-    name: string;
-    location: string;
-    macAddress: string;
-    status: string;
-  };
+  device: DeviceResponse | null;
 }
 
 export function EditDeviceDialog({
@@ -42,115 +37,109 @@ export function EditDeviceDialog({
   onOpenChange,
   device,
 }: EditDeviceDialogProps) {
+  const queryClient = useQueryClient();
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
+    reset,
     formState: { errors },
   } = useForm<EditDeviceFormData>({
     resolver: yupResolver(editDeviceSchema),
     defaultValues: {
-      name: device?.name || "",
-      location: device?.location || "",
-      macAddress: device?.macAddress || "",
-      status: (device?.status as EditDeviceFormData["status"]) ?? "online",
+      label: "",
+    },
+  });
+
+  // Update form when device changes
+  useEffect(() => {
+    if (device) {
+      reset({
+        label: device.label || "",
+      });
+    }
+  }, [device, reset]);
+
+  const updateMutation = useUpdateDevicesIdPatch({
+    mutation: {
+      onSuccess: () => {
+        toast.success("Device updated successfully!");
+        queryClient.invalidateQueries({
+          queryKey: getDevicesDevicesGetQueryKey(),
+        });
+        onOpenChange(false);
+      },
+      onError: (error: any) => {
+        const errorMessage =
+          error.response?.data?.detail || "Failed to update device";
+        toast.error(errorMessage);
+      },
     },
   });
 
   const onSubmit = (data: EditDeviceFormData) => {
-    // TODO: Implement device update logic
-    onOpenChange(false);
+    if (!device?.id) {
+      toast.error("Device ID is missing");
+      return;
+    }
+
+    updateMutation.mutate({
+      id: device.id,
+      data: {
+        label: data.label,
+      },
+    });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit Device</DialogTitle>
-          <DialogDescription>
-            Update device information and configuration
-          </DialogDescription>
+          <DialogDescription>Update device information</DialogDescription>
         </DialogHeader>
-        <div className="grid gap-6 py-4">
-          <div className="grid gap-4 md:grid-cols-2">
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-name">Device Name</Label>
+              <Label htmlFor="device-name">Device Name</Label>
               <Input
-                id="edit-name"
+                id="device-name"
                 placeholder="e.g., Temperature Sensor - Lab A"
-                {...register("name")}
+                {...register("label")}
               />
-              {errors.name && (
+              {errors.label && (
                 <span className="text-xs text-destructive">
-                  {errors.name.message}
+                  {errors.label.message}
                 </span>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-location">Location</Label>
+              <Label htmlFor="device-mac">MAC Address</Label>
               <Input
-                id="edit-location"
-                placeholder="e.g., Building 1, Floor 2"
-                {...register("location")}
+                id="device-mac"
+                value={device?.mac_address || ""}
+                disabled
+                className="font-mono bg-muted cursor-not-allowed"
               />
-              {errors.location && (
-                <span className="text-xs text-destructive">
-                  {errors.location.message}
-                </span>
-              )}
+              <p className="text-xs text-muted-foreground">
+                MAC address cannot be changed
+              </p>
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-mac">MAC Address</Label>
-            <Input
-              id="edit-mac"
-              placeholder="e.g., 00:1B:44:11:3A:B7"
-              className="font-mono"
-              {...register("macAddress")}
-            />
-            {errors.macAddress && (
-              <span className="text-xs text-destructive">
-                {errors.macAddress.message}
-              </span>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-status">Status</Label>
-            <Select
-              value={watch("status") ?? ""}
-              onValueChange={(value) =>
-                setValue("status", value as EditDeviceFormData["status"], {
-                  shouldValidate: true,
-                })
-              }
-            >
-              <SelectTrigger id="edit-status">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="online">Online</SelectItem>
-                <SelectItem value="offline">Offline</SelectItem>
-                <SelectItem value="warning">Warning</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.status && (
-              <span className="text-xs text-destructive">
-                {errors.status.message}
-              </span>
-            )}
-          </div>
-        </div>
-        <form onSubmit={handleSubmit(onSubmit as any)}>
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
               type="button"
-              onClick={() => onOpenChange(false)}
+              onClick={() => {
+                reset();
+                onOpenChange(false);
+              }}
+              className="sm:mr-2"
             >
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

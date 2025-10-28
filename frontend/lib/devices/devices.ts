@@ -345,6 +345,68 @@ export const useDeleteDevicesIdDelete = <TError = AxiosError<HTTPValidationError
       return useMutation(mutationOptions, queryClient);
     }
     /**
+ * @summary Attach
+ */
+export const attachDevicesMacAddressPut = (
+    macAddress: string,
+    deviceUpdate: DeviceUpdate, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<DeviceResponse>> => {
+    
+    
+    return axios.put(
+      `http://127.0.0.1:8000/devices/${macAddress}`,
+      deviceUpdate,options
+    );
+  }
+
+
+
+export const getAttachDevicesMacAddressPutMutationOptions = <TError = AxiosError<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof attachDevicesMacAddressPut>>, TError,{macAddress: string;data: DeviceUpdate}, TContext>, axios?: AxiosRequestConfig}
+): UseMutationOptions<Awaited<ReturnType<typeof attachDevicesMacAddressPut>>, TError,{macAddress: string;data: DeviceUpdate}, TContext> => {
+
+const mutationKey = ['attachDevicesMacAddressPut'];
+const {mutation: mutationOptions, axios: axiosOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, axios: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof attachDevicesMacAddressPut>>, {macAddress: string;data: DeviceUpdate}> = (props) => {
+          const {macAddress,data} = props ?? {};
+
+          return  attachDevicesMacAddressPut(macAddress,data,axiosOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AttachDevicesMacAddressPutMutationResult = NonNullable<Awaited<ReturnType<typeof attachDevicesMacAddressPut>>>
+    export type AttachDevicesMacAddressPutMutationBody = DeviceUpdate
+    export type AttachDevicesMacAddressPutMutationError = AxiosError<HTTPValidationError>
+
+    /**
+ * @summary Attach
+ */
+export const useAttachDevicesMacAddressPut = <TError = AxiosError<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof attachDevicesMacAddressPut>>, TError,{macAddress: string;data: DeviceUpdate}, TContext>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof attachDevicesMacAddressPut>>,
+        TError,
+        {macAddress: string;data: DeviceUpdate},
+        TContext
+      > => {
+
+      const mutationOptions = getAttachDevicesMacAddressPutMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
  * @summary Sensor
  */
 export const sensorDevicesIdSensorsSensorIdGet = (

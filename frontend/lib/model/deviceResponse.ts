@@ -4,6 +4,7 @@
  * FastAPI
  * OpenAPI spec version: 0.1.0
  */
+import type { DeviceResponseLabel } from './deviceResponseLabel';
 
 export interface DeviceResponse {
   /**
@@ -11,8 +12,8 @@ export interface DeviceResponse {
    * @maximum 2147483647
    */
   id: number;
-  /** @maxLength 255 */
-  label: string;
+  /** @nullable */
+  label?: DeviceResponseLabel;
   /** @maxLength 12 */
   mac_address: string;
 }

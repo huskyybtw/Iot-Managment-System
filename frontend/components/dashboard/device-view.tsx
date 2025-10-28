@@ -229,17 +229,7 @@ export function DeviceView({ initialDeviceId = "device-1" }: DeviceViewProps) {
       <EditDeviceDialog
         open={isEditDeviceDialogOpen}
         onOpenChange={setIsEditDeviceDialogOpen}
-        device={
-          selectedDevice
-            ? {
-                id: selectedDevice.id.toString(),
-                name: selectedDevice.label,
-                location: selectedDevice.location || "",
-                macAddress: selectedDevice.mac_address,
-                status: selectedDevice.status || "unknown",
-              }
-            : undefined
-        }
+        device={selectedDevice || null}
       />
     </>
   );

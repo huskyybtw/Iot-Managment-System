@@ -25,6 +25,17 @@ async def device(id: int, user=Depends(current_user)):
     return await DeviceResponse.from_tortoise_orm(device)
 
 
+@router.put("/{macAddress}", response_model=DeviceResponse)
+async def attach(macAddress: str, input: DeviceUpdate, user=Depends(current_user)):
+    device = await Device.filter(mac_address=macAddress).first()
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+    device.label = input.label
+    device.user = user
+    await device.save()
+    return await DeviceResponse.from_tortoise_orm(device)
+
+
 @router.patch("/{id}", response_model=DeviceResponse)
 async def update(id: int, input: DeviceUpdate, user=Depends(current_user)):
     device = await Device.filter(id=id, user=user).first()
@@ -40,7 +51,8 @@ async def delete(id: int, user=Depends(current_user)):
     device = await Device.filter(id=id, user=user).first()
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
-    await device.delete()
+    device.user = None
+    await device.save()
     return await DeviceResponse.from_tortoise_orm(device)
 
 

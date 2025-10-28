@@ -4,10 +4,9 @@
  * FastAPI
  * OpenAPI spec version: 0.1.0
  */
+import type { DeviceUpdateLabel } from './deviceUpdateLabel';
 
 export interface DeviceUpdate {
-  /** @maxLength 255 */
-  label: string;
-  /** @maxLength 12 */
-  mac_address: string;
+  /** @nullable */
+  label?: DeviceUpdateLabel;
 }
