@@ -5,7 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface AuthLoginSchema {
-  email: string;
-  password: string;
-}
+/**
+ * @nullable
+ */
+export type DeviceResponseUserId = number | null | null;

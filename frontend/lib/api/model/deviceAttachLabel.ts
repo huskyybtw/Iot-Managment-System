@@ -5,7 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type ScalarDocsGetParams = {
-url?: string;
-proxyUrl?: string;
-};
+/**
+ * @nullable
+ */
+export type DeviceAttachLabel = string | null | null;

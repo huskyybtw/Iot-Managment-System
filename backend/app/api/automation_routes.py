@@ -2,7 +2,11 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.models.automation_model import Automation
 from app.common.auth import current_user
 from app.common.pagination import PaginationParams, apply_pagination
-from app.schemas.automation_schema import AutomationResponseSchema
+from app.models.action_model import Action
+from app.schemas.automation_schema import (
+    AutomationResponseSchema,
+    AutomationCreateSchema,
+)
 
 router = APIRouter(prefix="/automation", tags=["automations"])
 
@@ -16,3 +20,21 @@ async def automations(
         query = query.filter(name__icontains=pagination.search)
     query = apply_pagination(query, pagination)
     return await AutomationResponseSchema.from_queryset(query)
+
+
+@router.post("/", response_model=AutomationResponseSchema)
+async def create(input: AutomationCreateSchema, user=Depends(current_user)):
+    input_dict = input.model_dump(exclude={"actions"})
+    actions_data = input.model_dump().get("actions", [])
+
+    automation = await Automation.create(**input_dict, user=user)
+
+    if actions_data:
+
+        for action_data in actions_data:
+            await Action.create(**action_data, automation=automation)
+
+    automation = (
+        await Automation.filter(id=automation.id).prefetch_related("actions").first()
+    )
+    return await AutomationResponseSchema.from_tortoise_orm(automation)

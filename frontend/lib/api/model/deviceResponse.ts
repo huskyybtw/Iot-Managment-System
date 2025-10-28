@@ -5,6 +5,8 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { DeviceResponseLabel } from './deviceResponseLabel';
+import type { DeviceResponseUserId } from './deviceResponseUserId';
+import type { AppModelsSensorModelSensor2lqljyLeaf } from './appModelsSensorModelSensor2lqljyLeaf';
 
 export interface DeviceResponse {
   /**
@@ -16,4 +18,7 @@ export interface DeviceResponse {
   label?: DeviceResponseLabel;
   /** @maxLength 12 */
   mac_address: string;
+  /** @nullable */
+  user_id?: DeviceResponseUserId;
+  sensors: AppModelsSensorModelSensor2lqljyLeaf[];
 }

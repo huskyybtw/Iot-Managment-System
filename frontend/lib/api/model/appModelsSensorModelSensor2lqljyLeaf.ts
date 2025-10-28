@@ -4,19 +4,19 @@
  * FastAPI
  * OpenAPI spec version: 0.1.0
  */
-import type { SensorResponseLabel } from './sensorResponseLabel';
-import type { SensorResponsePinId } from './sensorResponsePinId';
+import type { AppModelsSensorModelSensor2lqljyLeafLabel } from './appModelsSensorModelSensor2lqljyLeafLabel';
+import type { AppModelsSensorModelSensor2lqljyLeafPinId } from './appModelsSensorModelSensor2lqljyLeafPinId';
 import type { SensorType } from './sensorType';
 
-export interface SensorResponse {
+export interface AppModelsSensorModelSensor2lqljyLeaf {
   /**
    * @minimum -2147483648
    * @maximum 2147483647
    */
   id: number;
   /** @nullable */
-  label?: SensorResponseLabel;
-  pin_id: SensorResponsePinId;
+  label?: AppModelsSensorModelSensor2lqljyLeafLabel;
+  pin_id: AppModelsSensorModelSensor2lqljyLeafPinId;
   /**
    * @minimum -2147483648
    * @maximum 2147483647

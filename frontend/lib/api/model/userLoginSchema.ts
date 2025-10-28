@@ -5,7 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface UserUpdateSchema {
+export interface UserLoginSchema {
   /** @maxLength 128 */
   email: string;
   /** @maxLength 128 */
