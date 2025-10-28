@@ -20,8 +20,8 @@ import {
 import {
   useUpdateDevicesIdPatch,
   getDevicesDevicesGetQueryKey,
-} from "@/lib/devices/devices";
-import type { DeviceResponse } from "@/lib/model";
+} from "@/lib/api/devices/devices";
+import type { DeviceResponse } from "@/lib/api/model";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";

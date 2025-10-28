@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { LoginFormData, loginSchema } from "@/lib/validators/auth-schema";
 import { useRouter } from "next/navigation";
-import { useLoginAuthLoginPost } from "@/lib/auth/auth";
+import { useLoginAuthLoginPost } from "@/lib/api/auth/auth";
 import { toast } from "sonner";
 
 interface LoginFormProps {

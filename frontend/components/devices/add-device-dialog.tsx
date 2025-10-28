@@ -20,7 +20,7 @@ import {
 import {
   useAttachDevicesMacAddressPut,
   getDevicesDevicesGetQueryKey,
-} from "@/lib/devices/devices";
+} from "@/lib/api/devices/devices";
 import { useAuthContext } from "@/lib/providers/authProvider";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";

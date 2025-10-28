@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Mail, Phone, Lock, Settings } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { usePatchMeAuthMePatch } from "@/lib/auth/auth";
+import { usePatchMeAuthMePatch } from "@/lib/api/auth/auth";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   settingsSchema,
@@ -45,7 +45,7 @@ export function SettingsDialog() {
     try {
       const payload = {
         email: formData.email,
-        phone: formData.phone,
+        phone_number: formData.phone,
         password: formData.newPassword ?? "",
       };
       const response = await mutateAsync({ data: payload });

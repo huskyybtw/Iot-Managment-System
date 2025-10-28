@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { SignupFormData, signupSchema } from "@/lib/validators/auth-schema";
 import { useRouter } from "next/navigation";
-import { useRegisterAuthRegisterPost } from "@/lib/auth/auth";
+import { useRegisterAuthRegisterPost } from "@/lib/api/auth/auth";
 
 interface SignupFormProps {
   onToggle: () => void;

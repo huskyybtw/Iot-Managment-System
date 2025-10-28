@@ -1,8 +1,8 @@
 "use client";
 
 import type React from "react";
-import { useDevicesDevicesGet } from "@/lib/devices/devices";
-import type { DeviceResponse } from "@/lib/model";
+import { useDevicesDevicesGet } from "@/lib/api/devices/devices";
+import type { DeviceResponse } from "@/lib/api/model";
 import { useState } from "react";
 import {
   Plus,

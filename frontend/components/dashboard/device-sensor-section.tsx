@@ -10,9 +10,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import type { DeviceResponse, SensorResponse } from "@/lib/model";
+import type { DeviceResponse, SensorResponse } from "@/lib/api/model";
 
-interface DeviceWithStats extends DeviceResponse {
+interface DeviceWithStats extends Omit<DeviceResponse, "sensors"> {
   location?: string;
   status?: string;
   sensors?: Array<SensorResponse & { icon?: any; unit?: string }>;

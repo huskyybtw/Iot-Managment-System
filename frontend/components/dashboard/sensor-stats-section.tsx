@@ -1,5 +1,5 @@
-import { Card, CardContent } from "@/components/ui/card";
-import type { SensorResponse } from "@/lib/model";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { SensorResponse } from "@/lib/api/model";
 
 interface SensorStatsProps {
   sensor: SensorResponse & { unit?: string };

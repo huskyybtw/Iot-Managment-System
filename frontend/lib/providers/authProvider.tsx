@@ -2,9 +2,9 @@
 import React, { createContext, useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { useMeAuthMeGet } from "../auth/auth";
+import { useMeAuthMeGet } from "../api/auth/auth";
 import { useQueryClient } from "@tanstack/react-query";
-import { AuthResponse, UserResponseSchema } from "../model";
+import { AuthResponseSchema, UserResponseSchema } from "../api/model";
 
 interface AuthContextType {
   user: UserResponseSchema | null;

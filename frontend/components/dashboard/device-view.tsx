@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { Thermometer, Droplets, Zap, Wind } from "lucide-react";
 import { EditDeviceDialog } from "@/components/devices/edit-device-dialog";
-import type { DeviceResponse, SensorResponse } from "@/lib/model";
+import type { DeviceResponse, SensorResponse } from "@/lib/api/model";
 import { DeviceStatsCards } from "./device-stats-cards";
 import { DeviceSensorSection } from "./device-sensor-section";
 import { SensorStatsSection } from "./sensor-stats-section";
 import { SensorChartSection } from "./sensor-chart-section";
 
 // Extended types for UI-specific data not in API models
-interface DeviceWithStats extends DeviceResponse {
+interface DeviceWithStats extends Omit<DeviceResponse, "sensors"> {
   location?: string;
   status?: string;
   sensors?: Array<SensorResponse & { icon?: any; unit?: string }>;
@@ -229,7 +229,17 @@ export function DeviceView({ initialDeviceId = "device-1" }: DeviceViewProps) {
       <EditDeviceDialog
         open={isEditDeviceDialogOpen}
         onOpenChange={setIsEditDeviceDialogOpen}
-        device={selectedDevice || null}
+        device={
+          selectedDevice
+            ? {
+                id: selectedDevice.id,
+                label: selectedDevice.label,
+                mac_address: selectedDevice.mac_address,
+                user_id: selectedDevice.user_id,
+                sensors: [],
+              }
+            : null
+        }
       />
     </>
   );

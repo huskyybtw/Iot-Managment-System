@@ -5,9 +5,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { DeviceResponse, SensorResponse } from "@/lib/model";
+import type { DeviceResponse, SensorResponse } from "@/lib/api/model";
 
-interface DeviceWithStats extends DeviceResponse {
+interface DeviceWithStats extends Omit<DeviceResponse, "sensors"> {
   location?: string;
   status?: string;
   sensors?: Array<SensorResponse & { icon?: any; unit?: string }>;

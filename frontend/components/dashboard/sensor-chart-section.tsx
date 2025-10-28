@@ -24,7 +24,7 @@ import {
   Tooltip,
 } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
-import type { SensorResponse } from "@/lib/model";
+import type { SensorResponse } from "@/lib/api/model";
 
 interface SensorChartSectionProps {
   sensor: SensorResponse & { unit?: string };

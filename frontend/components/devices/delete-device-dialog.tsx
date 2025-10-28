@@ -12,8 +12,8 @@ import { Button } from "@/components/ui/button";
 import {
   useDeleteDevicesIdDelete,
   getDevicesDevicesGetQueryKey,
-} from "@/lib/devices/devices";
-import type { DeviceResponse } from "@/lib/model";
+} from "@/lib/api/devices/devices";
+import type { DeviceResponse } from "@/lib/api/model";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
