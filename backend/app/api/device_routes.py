@@ -2,8 +2,15 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.models.device_model import Device
 from app.common.auth import current_user
 from app.common.pagination import PaginationParams, apply_pagination
-from app.schemas.device_schema import DeviceResponse, DeviceUpdate, DeviceAttach
+from app.schemas.device_schema import (
+    DeviceResponse,
+    DeviceCreate,
+    DeviceUpdate,
+    DeviceAttach,
+)
 from app.schemas.sensor_schema import SensorResponse
+from tortoise.transactions import in_transaction
+from app.models.sensor_model import Sensor
 
 router = APIRouter(prefix="/devices", tags=["devices"])
 
@@ -23,6 +30,23 @@ async def device(id: int, user=Depends(current_user)):
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
     return await DeviceResponse.from_tortoise_orm(device)
+
+
+@router.post("/", response_model=DeviceResponse)
+async def create(input: DeviceCreate, user=Depends(current_user)):
+    if not input.sensors or len(input.sensors) == 0:
+        raise HTTPException(status_code=400, detail="At least one sensor is required")
+
+    async with in_transaction() as connection:
+        input_dict = input.model_dump(exclude={"sensors"})
+        device = await Device.create(**input_dict, user=user, using_db=connection)
+
+        for sensor in input.sensors:
+            sensor_dict = sensor.model_dump()
+            await Sensor.create(**sensor_dict, device=device, using_db=connection)
+
+        await device.fetch_related("sensors")
+        return await DeviceResponse.from_tortoise_orm(device)
 
 
 @router.put("/{macAddress}", response_model=DeviceResponse)

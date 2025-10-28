@@ -7,6 +7,7 @@ from app.schemas.automation_schema import (
     AutomationResponseSchema,
     AutomationCreateSchema,
 )
+from tortoise.transactions import in_transaction
 
 router = APIRouter(prefix="/automation", tags=["automations"])
 
@@ -27,14 +28,22 @@ async def create(input: AutomationCreateSchema, user=Depends(current_user)):
     input_dict = input.model_dump(exclude={"actions"})
     actions_data = input.model_dump().get("actions", [])
 
-    automation = await Automation.create(**input_dict, user=user)
+    if not actions_data or len(actions_data) == 0:
+        raise HTTPException(status_code=400, detail="At least one action is required")
 
-    if actions_data:
+    async with in_transaction() as connection:
+        automation = await Automation.create(
+            **input_dict, user=user, using_db=connection
+        )
 
         for action_data in actions_data:
-            await Action.create(**action_data, automation=automation)
+            await Action.create(
+                **action_data, automation=automation, using_db=connection
+            )
 
-    automation = (
-        await Automation.filter(id=automation.id).prefetch_related("actions").first()
-    )
-    return await AutomationResponseSchema.from_tortoise_orm(automation)
+        automation = (
+            await Automation.filter(id=automation.id)
+            .prefetch_related("actions")
+            .first()
+        )
+        return await AutomationResponseSchema.from_tortoise_orm(automation)

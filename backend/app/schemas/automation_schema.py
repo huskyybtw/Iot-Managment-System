@@ -10,6 +10,7 @@ AutomationCreateSchema = pydantic_model_creator(
     Automation,
     name="AutomationCreateSchema",
     exclude=(
+        "id",
         "user",
         "sensor",
         "actions.triggers",

@@ -6,6 +6,22 @@ DeviceResponse = pydantic_model_creator(
     name="DeviceResponse",
     exclude=("user", "sensors.automations", "sensors.sensor_values"),
 )
+
+DeviceCreate = pydantic_model_creator(
+    Device,
+    name="DeviceCreate",
+    exclude=(
+        "id",
+        "label",
+        "user_id",
+        "user",
+        "sensors.automations",
+        "sensors.sensor_values",
+        "sensors.id",
+        "sensors.device",
+    ),
+)
+
 DeviceAttach = pydantic_model_creator(
     Device,
     name="DeviceAttach",
