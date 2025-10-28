@@ -4,7 +4,6 @@ from enum import Enum
 
 class ActionType(str, Enum):
     EMAIL = "email"
-    SMS = "sms"
 
 
 class Action(models.Model):

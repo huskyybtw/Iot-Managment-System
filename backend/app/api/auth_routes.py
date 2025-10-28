@@ -1,6 +1,7 @@
 from app.schemas.user_schema import (
     UserResponseSchema,
     UserCreateSchema,
+    UserLoginSchema,
     UserUpdateSchema,
     AuthResponseSchema,
 )
@@ -26,7 +27,7 @@ async def register(data: UserCreateSchema):
 
 
 @router.post("/login", response_model=AuthResponseSchema)
-async def login(data: UserUpdateSchema):
+async def login(data: UserLoginSchema):
     user = await User.filter(email=data.email).first()
     if not user or not verify_password(data.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")

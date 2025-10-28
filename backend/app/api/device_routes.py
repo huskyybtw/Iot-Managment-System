@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.models.device_model import Device
 from app.common.auth import current_user
 from app.common.pagination import PaginationParams, apply_pagination
-from app.schemas.device_schema import DeviceResponse, DeviceUpdate
+from app.schemas.device_schema import DeviceResponse, DeviceUpdate, DeviceAttach
 from app.schemas.sensor_schema import SensorResponse
 
 router = APIRouter(prefix="/devices", tags=["devices"])
@@ -26,7 +26,7 @@ async def device(id: int, user=Depends(current_user)):
 
 
 @router.put("/{macAddress}", response_model=DeviceResponse)
-async def attach(macAddress: str, input: DeviceUpdate, user=Depends(current_user)):
+async def attach(macAddress: str, input: DeviceAttach, user=Depends(current_user)):
     device = await Device.filter(mac_address=macAddress).first()
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")

@@ -35,7 +35,7 @@ register_tortoise(
 )
 
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 async def scalar_docs(
     url: str = Query(None),
     proxyUrl: str = Query("https://proxy.scalar.com"),
