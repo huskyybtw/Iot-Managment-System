@@ -3,24 +3,25 @@
 import { useState, useEffect } from "react";
 import { Thermometer, Droplets, Zap, Wind } from "lucide-react";
 import { EditDeviceDialog } from "@/components/devices/edit-device-dialog";
-import type { DeviceResponse, SensorResponse } from "@/lib/api/model";
-import { useDevicesDevicesGet } from "@/lib/api/devices/devices";
+import type {
+  DeviceResponse,
+  SensorResponse,
+  SensorValueResponse,
+} from "@/lib/api/model";
+import {
+  useDevicesDevicesGet,
+  useSensorValuesDevicesIdSensorsSensorIdValuesGet,
+} from "@/lib/api/devices/devices";
 import { Loading } from "@/components/common/loading";
 import { ErrorMessage } from "@/components/common/error";
-import { DeviceStatsCards } from "./device-stats-cards";
 import { DeviceSensorSection } from "./device-sensor-section";
 import { SensorStatsSection } from "./sensor-stats-section";
 import { SensorChartSection } from "./sensor-chart-section";
 
 // Extended types for UI-specific data not in API models
 interface DeviceWithStats extends Omit<DeviceResponse, "sensors"> {
-  location?: string;
   status?: string;
   sensors?: Array<SensorResponse & { icon?: any; unit?: string }>;
-  totalSensors?: number;
-  activeAlerts?: number;
-  dataPoints?: number;
-  uptime?: string;
 }
 
 interface DeviceViewProps {
@@ -35,6 +36,36 @@ export function DeviceView({ initialDeviceId }: DeviceViewProps) {
   const [selectedSensorId, setSelectedSensorId] = useState<number | null>(null);
   const [timeframe, setTimeframe] = useState("today");
   const [isEditDeviceDialogOpen, setIsEditDeviceDialogOpen] = useState(false);
+
+  // Calculate timeframe in seconds for API
+  const getTimeframeSeconds = (tf: string): number => {
+    switch (tf) {
+      case "today":
+        return 86400; // 24 hours
+      case "week":
+        return 604800; // 7 days
+      case "month":
+        return 2592000; // 30 days
+      default:
+        return 86400;
+    }
+  };
+
+  // Fetch sensor values from API
+  const {
+    data: sensorValuesData,
+    isLoading: isSensorValuesLoading,
+    error: sensorValuesError,
+  } = useSensorValuesDevicesIdSensorsSensorIdValuesGet(
+    selectedDeviceId ?? 0,
+    selectedSensorId ?? 0,
+    { timeframe: getTimeframeSeconds(timeframe) },
+    {
+      query: {
+        enabled: selectedDeviceId !== null && selectedSensorId !== null,
+      },
+    }
+  );
 
   // Set initial device and sensor when data loads
   useEffect(() => {
@@ -99,30 +130,43 @@ export function DeviceView({ initialDeviceId }: DeviceViewProps) {
     }
   };
 
-  const generateSensorData = (timeframe: string) => {
-    const dataPoints: { [key: string]: any[] } = {
-      today: Array.from({ length: 24 }, (_, i) => ({
-        time: `${i.toString().padStart(2, "0")}:00`,
-        hour: i,
-        value: 20 + Math.random() * 5,
-        timestamp: new Date().setHours(i, 0, 0, 0),
-      })),
-      week: Array.from({ length: 7 }, (_, i) => ({
-        time: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i],
-        value: 20 + Math.random() * 5,
-        timestamp: new Date().setDate(new Date().getDate() - (6 - i)),
-      })),
-      month: Array.from({ length: 30 }, (_, i) => ({
-        time: `${i + 1}`,
-        value: 20 + Math.random() * 5,
-        timestamp: new Date().setDate(i + 1),
-      })),
-    };
-    return dataPoints[timeframe] || dataPoints.today;
+  // Transform sensor values from API to chart format
+  const transformSensorValuesToChartData = (
+    values: SensorValueResponse[],
+    timeframe: string
+  ) => {
+    return values.map((sv) => {
+      const date = new Date(sv.timestamp);
+      let time: string;
+
+      switch (timeframe) {
+        case "today":
+          time = `${date.getHours().toString().padStart(2, "0")}:${date
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}`;
+          break;
+        case "week":
+          time = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
+            date.getDay()
+          ];
+          break;
+        case "month":
+          time = `${date.getDate()}`;
+          break;
+        default:
+          time = date.toLocaleTimeString();
+      }
+
+      return {
+        time,
+        value: sv.value,
+        timestamp: date.getTime(),
+      };
+    });
   };
 
   if (isLoading) {
-    return <Loading message="Loading devices..." />;
   }
 
   if (error) {
@@ -139,17 +183,12 @@ export function DeviceView({ initialDeviceId }: DeviceViewProps) {
   const enrichedDevice: DeviceWithStats | undefined = selectedDevice
     ? {
         ...selectedDevice,
-        location: "Unknown", // Could be added to API later
         status: "online", // Could be calculated from sensor data
         sensors: selectedDevice.sensors?.map((s) => ({
           ...s,
           icon: getSensorIcon(s.type),
           unit: getSensorUnit(s.type),
         })),
-        totalSensors: selectedDevice.sensors?.length || 0,
-        activeAlerts: 0, // Could be calculated from automation triggers
-        dataPoints: 1440, // Mock for now
-        uptime: "99.8%", // Mock for now
       }
     : undefined;
 
@@ -157,21 +196,40 @@ export function DeviceView({ initialDeviceId }: DeviceViewProps) {
     (s) => s.id === selectedSensorId
   );
 
-  const sensorData = generateSensorData(timeframe);
+  // Use real sensor data from API or fall back to empty array
+  const sensorValues = sensorValuesData?.data?.sensor_values ?? [];
+  const sensorData =
+    sensorValues.length > 0
+      ? transformSensorValuesToChartData(sensorValues, timeframe)
+      : [];
 
-  const sensorStats = {
-    current: sensorData[sensorData.length - 1]?.value.toFixed(1) || "0",
-    min: Math.min(...sensorData.map((d) => d.value)).toFixed(1),
-    max: Math.max(...sensorData.map((d) => d.value)).toFixed(1),
-    avg: (
-      sensorData.reduce((sum, d) => sum + d.value, 0) / sensorData.length
-    ).toFixed(1),
-  };
+  // Only calculate stats if we have data
+  const sensorStats =
+    sensorData.length > 0
+      ? {
+          current: sensorData[sensorData.length - 1]?.value.toFixed(1) || "0",
+          min: Math.min(...sensorData.map((d) => d.value)).toFixed(1),
+          max: Math.max(...sensorData.map((d) => d.value)).toFixed(1),
+          avg: (
+            sensorData.reduce((sum, d) => sum + d.value, 0) / sensorData.length
+          ).toFixed(1),
+        }
+      : {
+          current: "0",
+          min: "0",
+          max: "0",
+          avg: "0",
+        };
 
   const exportToExcel = () => {
+    if (sensorData.length === 0) {
+      return; // Don't export if no data
+    }
+
     const csvContent = [
-      ["Time", "Value", "Unit"],
+      ["Timestamp", "Time", "Value", "Unit"],
       ...sensorData.map((d) => [
+        new Date(d.timestamp).toISOString(),
         d.time,
         d.value.toFixed(2),
         selectedSensor?.unit || "",
@@ -193,17 +251,12 @@ export function DeviceView({ initialDeviceId }: DeviceViewProps) {
   // Map devices to the format expected by DeviceSensorSection
   const devicesWithStats: DeviceWithStats[] = devices.map((device) => ({
     ...device,
-    location: "Unknown",
     status: "online",
     sensors: device.sensors?.map((s) => ({
       ...s,
       icon: getSensorIcon(s.type),
       unit: getSensorUnit(s.type),
     })),
-    totalSensors: device.sensors?.length || 0,
-    activeAlerts: 0,
-    dataPoints: 1440,
-    uptime: "99.8%",
   }));
 
   return (
@@ -217,8 +270,9 @@ export function DeviceView({ initialDeviceId }: DeviceViewProps) {
         onEditClick={() => setIsEditDeviceDialogOpen(true)}
       />
 
-      {selectedSensor && (
+      {selectedSensor && sensorData.length > 0 && (
         <>
+          <SensorStatsSection sensor={selectedSensor} stats={sensorStats} />
           <SensorChartSection
             sensor={selectedSensor}
             sensorData={sensorData}
@@ -227,6 +281,12 @@ export function DeviceView({ initialDeviceId }: DeviceViewProps) {
             onExport={exportToExcel}
           />
         </>
+      )}
+
+      {selectedSensor && sensorData.length === 0 && !isSensorValuesLoading && (
+        <div className="text-center py-8 text-muted-foreground">
+          No sensor data available for the selected timeframe
+        </div>
       )}
 
       <EditDeviceDialog

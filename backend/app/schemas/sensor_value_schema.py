@@ -1,7 +1,16 @@
 from tortoise.contrib.pydantic import pydantic_model_creator
 from app.models.sensor_value_model import SensorValue
 
-SensorValueResponse = pydantic_model_creator(SensorValue, name="SensorValueResponse")
+SensorValueResponse = pydantic_model_creator(
+    SensorValue,
+    name="SensorValueResponse",
+    exclude=(
+        "id",
+        "sensor_id",
+        "sensor",
+        "automations",
+    ),
+)
 SensorValueCreate = pydantic_model_creator(
     SensorValue, name="SensorValueCreate", exclude_readonly=True
 )

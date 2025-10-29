@@ -8,9 +8,11 @@ from app.schemas.device_schema import (
     DeviceUpdate,
     DeviceAttach,
 )
-from app.schemas.sensor_schema import SensorResponse
+from app.schemas.sensor_schema import SensorResponse, SensorWithValuesResponse
 from tortoise.transactions import in_transaction
 from app.models.sensor_model import Sensor
+from app.models.sensor_value_model import SensorValue
+from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/devices", tags=["devices"])
 
@@ -89,3 +91,42 @@ async def sensor(id: int, sensorId: int, user=Depends(current_user)):
     if not sensor:
         raise HTTPException(status_code=404, detail="Sensor not found")
     return [await SensorResponse.from_tortoise_orm(sensor)]
+
+
+@router.get("/{id}/sensors/{sensorId}/values", response_model=SensorWithValuesResponse)
+async def sensor_values(
+    id: int,
+    sensorId: int,
+    timeframe: int = 86400,  # Default 24 hours in seconds
+    user=Depends(current_user),
+):
+    device = await Device.filter(id=id, user=user).first()
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    sensor = await device.sensors.filter(id=sensorId).first()
+    if not sensor:
+        raise HTTPException(status_code=404, detail="Sensor not found")
+
+    # Calculate the time threshold
+    time_threshold = datetime.now() - timedelta(seconds=timeframe)
+
+    # Fetch sensor values from the specified timeframe
+    sensor_values = (
+        await SensorValue.filter(sensor=sensor, timestamp__gte=time_threshold)
+        .order_by("timestamp")
+        .all()
+    )
+
+    # Convert sensor values to schema
+    from app.schemas.sensor_value_schema import SensorValueResponse
+
+    sensor_values_list = [
+        await SensorValueResponse.from_tortoise_orm(sv) for sv in sensor_values
+    ]
+
+    # Manually construct the response
+    sensor_dict = await SensorResponse.from_tortoise_orm(sensor)
+    return SensorWithValuesResponse(
+        **sensor_dict.model_dump(), sensor_values=sensor_values_list
+    )

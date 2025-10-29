@@ -37,7 +37,9 @@ import type {
   DeviceUpdate,
   DevicesDevicesGetParams,
   HTTPValidationError,
-  SensorResponse
+  SensorResponse,
+  SensorValuesDevicesIdSensorsSensorIdValuesGetParams,
+  SensorWithValuesResponse
 } from '.././model';
 
 
@@ -555,6 +557,111 @@ export function useSensorDevicesIdSensorsSensorIdGet<TData = Awaited<ReturnType<
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getSensorDevicesIdSensorsSensorIdGetQueryOptions(id,sensorId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * @summary Sensor Values
+ */
+export const sensorValuesDevicesIdSensorsSensorIdValuesGet = (
+    id: number,
+    sensorId: number,
+    params?: SensorValuesDevicesIdSensorsSensorIdValuesGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<SensorWithValuesResponse>> => {
+    
+    
+    return axios.get(
+      `http://127.0.0.1:8000/devices/${id}/sensors/${sensorId}/values`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+
+
+
+export const getSensorValuesDevicesIdSensorsSensorIdValuesGetQueryKey = (id?: number,
+    sensorId?: number,
+    params?: SensorValuesDevicesIdSensorsSensorIdValuesGetParams,) => {
+    return [
+    `http://127.0.0.1:8000/devices/${id}/sensors/${sensorId}/values`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getSensorValuesDevicesIdSensorsSensorIdValuesGetQueryOptions = <TData = Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>, TError = AxiosError<HTTPValidationError>>(id: number,
+    sensorId: number,
+    params?: SensorValuesDevicesIdSensorsSensorIdValuesGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>, TError, TData>>, axios?: AxiosRequestConfig}
+) => {
+
+const {query: queryOptions, axios: axiosOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSensorValuesDevicesIdSensorsSensorIdValuesGetQueryKey(id,sensorId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>> = ({ signal }) => sensorValuesDevicesIdSensorsSensorIdValuesGet(id,sensorId,params, { signal, ...axiosOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id && sensorId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SensorValuesDevicesIdSensorsSensorIdValuesGetQueryResult = NonNullable<Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>>
+export type SensorValuesDevicesIdSensorsSensorIdValuesGetQueryError = AxiosError<HTTPValidationError>
+
+
+export function useSensorValuesDevicesIdSensorsSensorIdValuesGet<TData = Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>, TError = AxiosError<HTTPValidationError>>(
+ id: number,
+    sensorId: number,
+    params: undefined |  SensorValuesDevicesIdSensorsSensorIdValuesGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>,
+          TError,
+          Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>
+        > , 'initialData'
+      >, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSensorValuesDevicesIdSensorsSensorIdValuesGet<TData = Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>, TError = AxiosError<HTTPValidationError>>(
+ id: number,
+    sensorId: number,
+    params?: SensorValuesDevicesIdSensorsSensorIdValuesGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>,
+          TError,
+          Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>
+        > , 'initialData'
+      >, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSensorValuesDevicesIdSensorsSensorIdValuesGet<TData = Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>, TError = AxiosError<HTTPValidationError>>(
+ id: number,
+    sensorId: number,
+    params?: SensorValuesDevicesIdSensorsSensorIdValuesGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>, TError, TData>>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Sensor Values
+ */
+
+export function useSensorValuesDevicesIdSensorsSensorIdValuesGet<TData = Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>, TError = AxiosError<HTTPValidationError>>(
+ id: number,
+    sensorId: number,
+    params?: SensorValuesDevicesIdSensorsSensorIdValuesGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof sensorValuesDevicesIdSensorsSensorIdValuesGet>>, TError, TData>>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSensorValuesDevicesIdSensorsSensorIdValuesGetQueryOptions(id,sensorId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

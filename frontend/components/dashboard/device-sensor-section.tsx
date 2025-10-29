@@ -13,13 +13,8 @@ import { Separator } from "@/components/ui/separator";
 import type { DeviceResponse, SensorResponse } from "@/lib/api/model";
 
 interface DeviceWithStats extends Omit<DeviceResponse, "sensors"> {
-  location?: string;
   status?: string;
   sensors?: Array<SensorResponse & { icon?: any; unit?: string }>;
-  totalSensors?: number;
-  activeAlerts?: number;
-  dataPoints?: number;
-  uptime?: string;
 }
 
 interface DeviceSensorSectionProps {
@@ -116,10 +111,6 @@ export function DeviceSensorSection({
           <>
             <Separator />
             <div className="grid gap-2 text-sm md:grid-cols-3">
-              <div>
-                <span className="text-muted-foreground text-xs">Location:</span>{" "}
-                <span className="font-medium">{selectedDevice.location}</span>
-              </div>
               <div>
                 <span className="text-muted-foreground text-xs">MAC:</span>{" "}
                 <span className="font-mono text-xs">
