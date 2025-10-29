@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Thermometer, Droplets, Zap, Wind } from "lucide-react";
 import { EditDeviceDialog } from "@/components/devices/edit-device-dialog";
 import type { DeviceResponse, SensorResponse } from "@/lib/api/model";
+import { useDevicesDevicesGet } from "@/lib/api/devices/devices";
+import { Loading } from "@/components/common/loading";
+import { ErrorMessage } from "@/components/common/error";
 import { DeviceStatsCards } from "./device-stats-cards";
 import { DeviceSensorSection } from "./device-sensor-section";
 import { SensorStatsSection } from "./sensor-stats-section";
@@ -21,123 +24,80 @@ interface DeviceWithStats extends Omit<DeviceResponse, "sensors"> {
 }
 
 interface DeviceViewProps {
-  initialDeviceId?: string;
+  initialDeviceId?: number;
 }
 
-export function DeviceView({ initialDeviceId = "device-1" }: DeviceViewProps) {
-  const [selectedDeviceId, setSelectedDeviceId] = useState(initialDeviceId);
-  const [selectedSensorId, setSelectedSensorId] = useState("sensor-1");
+export function DeviceView({ initialDeviceId }: DeviceViewProps) {
+  const { data: devicesData, isLoading, error } = useDevicesDevicesGet();
+  const devices = devicesData?.data ?? [];
+
+  const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
+  const [selectedSensorId, setSelectedSensorId] = useState<number | null>(null);
   const [timeframe, setTimeframe] = useState("today");
   const [isEditDeviceDialogOpen, setIsEditDeviceDialogOpen] = useState(false);
 
-  // Mock data - in real app, this would come from API
-  const devices: DeviceWithStats[] = [
-    {
-      id: 1,
-      label: "Temperature Sensor - Lab A",
-      mac_address: "00:1B:44:11:3A:B7",
-      location: "Building 1, Floor 2",
-      status: "online",
-      sensors: [
-        {
-          id: 1,
-          label: "Temperature",
-          type: "other",
-          pin_id: 4 as any,
-          range_min: 0,
-          range_max: 100,
-          in_out: true,
-          unit: "°C",
-          icon: Thermometer,
-        },
-        {
-          id: 2,
-          label: "Humidity",
-          type: "other",
-          pin_id: 5 as any,
-          range_min: 0,
-          range_max: 100,
-          in_out: true,
-          unit: "%",
-          icon: Droplets,
-        },
-      ],
-      totalSensors: 2,
-      activeAlerts: 1,
-      dataPoints: 1440,
-      uptime: "99.8%",
-    },
-    {
-      id: 2,
-      label: "Power Monitor - Server Room",
-      mac_address: "00:1B:44:11:3A:B8",
-      location: "Building 2, Basement",
-      status: "online",
-      sensors: [
-        {
-          id: 3,
-          label: "Power Consumption",
-          type: "other",
-          pin_id: 6 as any,
-          range_min: 0,
-          range_max: 1000,
-          in_out: true,
-          unit: "W",
-          icon: Zap,
-        },
-        {
-          id: 4,
-          label: "Voltage",
-          type: "other",
-          pin_id: 7 as any,
-          range_min: 0,
-          range_max: 240,
-          in_out: true,
-          unit: "V",
-          icon: Zap,
-        },
-      ],
-      totalSensors: 2,
-      activeAlerts: 0,
-      dataPoints: 2880,
-      uptime: "100%",
-    },
-    {
-      id: 3,
-      label: "Air Quality Monitor - Office",
-      mac_address: "00:1B:44:11:3A:B9",
-      location: "Building 1, Floor 1",
-      status: "warning",
-      sensors: [
-        {
-          id: 5,
-          label: "CO2 Level",
-          type: "other",
-          pin_id: 8 as any,
-          range_min: 0,
-          range_max: 5000,
-          in_out: true,
-          unit: "ppm",
-          icon: Wind,
-        },
-        {
-          id: 6,
-          label: "Air Temperature",
-          type: "other",
-          pin_id: 9 as any,
-          range_min: 0,
-          range_max: 100,
-          in_out: true,
-          unit: "°C",
-          icon: Thermometer,
-        },
-      ],
-      totalSensors: 2,
-      activeAlerts: 2,
-      dataPoints: 720,
-      uptime: "95.2%",
-    },
-  ];
+  // Set initial device and sensor when data loads
+  useEffect(() => {
+    if (devices.length > 0 && selectedDeviceId === null) {
+      const deviceId = initialDeviceId || devices[0].id;
+      setSelectedDeviceId(deviceId);
+
+      const device = devices.find((d) => d.id === deviceId);
+      if (device?.sensors && device.sensors.length > 0) {
+        setSelectedSensorId(device.sensors[0].id);
+      }
+    }
+  }, [devices, initialDeviceId, selectedDeviceId]);
+
+  // Update selected sensor when device changes
+  useEffect(() => {
+    if (selectedDeviceId) {
+      const device = devices.find((d) => d.id === selectedDeviceId);
+      if (device?.sensors && device.sensors.length > 0) {
+        // Keep current sensor if it belongs to the new device, otherwise select first sensor
+        const sensorExists = device.sensors.some(
+          (s) => s.id === selectedSensorId
+        );
+        if (!sensorExists) {
+          setSelectedSensorId(device.sensors[0].id);
+        }
+      } else {
+        setSelectedSensorId(null);
+      }
+    }
+  }, [selectedDeviceId, devices, selectedSensorId]);
+
+  const getSensorIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case "temperature":
+        return Thermometer;
+      case "humidity":
+        return Droplets;
+      case "power":
+        return Zap;
+      case "air":
+        return Wind;
+      default:
+        return Thermometer;
+    }
+  };
+
+  const getSensorUnit = (type: string) => {
+    switch (type.toLowerCase()) {
+      case "temperature":
+        return "°C";
+      case "humidity":
+        return "%";
+      case "power":
+        return "W";
+      case "voltage":
+        return "V";
+      case "air":
+        return "ppm";
+      default:
+        return "";
+    }
+  };
 
   const generateSensorData = (timeframe: string) => {
     const dataPoints: { [key: string]: any[] } = {
@@ -161,12 +121,42 @@ export function DeviceView({ initialDeviceId = "device-1" }: DeviceViewProps) {
     return dataPoints[timeframe] || dataPoints.today;
   };
 
-  const selectedDevice = devices.find(
-    (d) => d.id.toString() === selectedDeviceId
+  if (isLoading) {
+    return <Loading message="Loading devices..." />;
+  }
+
+  if (error) {
+    return <ErrorMessage message="Error loading devices" />;
+  }
+
+  if (devices.length === 0) {
+    return <ErrorMessage message="No devices found" />;
+  }
+
+  const selectedDevice = devices.find((d) => d.id === selectedDeviceId);
+
+  // Enrich device with UI-specific data
+  const enrichedDevice: DeviceWithStats | undefined = selectedDevice
+    ? {
+        ...selectedDevice,
+        location: "Unknown", // Could be added to API later
+        status: "online", // Could be calculated from sensor data
+        sensors: selectedDevice.sensors?.map((s) => ({
+          ...s,
+          icon: getSensorIcon(s.type),
+          unit: getSensorUnit(s.type),
+        })),
+        totalSensors: selectedDevice.sensors?.length || 0,
+        activeAlerts: 0, // Could be calculated from automation triggers
+        dataPoints: 1440, // Mock for now
+        uptime: "99.8%", // Mock for now
+      }
+    : undefined;
+
+  const selectedSensor = enrichedDevice?.sensors?.find(
+    (s) => s.id === selectedSensorId
   );
-  const selectedSensor = selectedDevice?.sensors?.find(
-    (s) => s.id.toString() === selectedSensorId
-  );
+
   const sensorData = generateSensorData(timeframe);
 
   const sensorStats = {
@@ -200,22 +190,35 @@ export function DeviceView({ initialDeviceId = "device-1" }: DeviceViewProps) {
     a.click();
   };
 
+  // Map devices to the format expected by DeviceSensorSection
+  const devicesWithStats: DeviceWithStats[] = devices.map((device) => ({
+    ...device,
+    location: "Unknown",
+    status: "online",
+    sensors: device.sensors?.map((s) => ({
+      ...s,
+      icon: getSensorIcon(s.type),
+      unit: getSensorUnit(s.type),
+    })),
+    totalSensors: device.sensors?.length || 0,
+    activeAlerts: 0,
+    dataPoints: 1440,
+    uptime: "99.8%",
+  }));
+
   return (
     <>
-      {selectedDevice && <DeviceStatsCards device={selectedDevice} />}
-
       <DeviceSensorSection
-        devices={devices}
-        selectedDeviceId={selectedDeviceId}
-        selectedSensorId={selectedSensorId}
-        onDeviceChange={setSelectedDeviceId}
-        onSensorChange={setSelectedSensorId}
+        devices={devicesWithStats}
+        selectedDeviceId={selectedDeviceId ? String(selectedDeviceId) : ""}
+        selectedSensorId={selectedSensorId ? String(selectedSensorId) : ""}
+        onDeviceChange={(id) => setSelectedDeviceId(Number(id))}
+        onSensorChange={(id) => setSelectedSensorId(Number(id))}
         onEditClick={() => setIsEditDeviceDialogOpen(true)}
       />
 
       {selectedSensor && (
         <>
-          <SensorStatsSection sensor={selectedSensor} stats={sensorStats} />
           <SensorChartSection
             sensor={selectedSensor}
             sensorData={sensorData}
@@ -229,17 +232,7 @@ export function DeviceView({ initialDeviceId = "device-1" }: DeviceViewProps) {
       <EditDeviceDialog
         open={isEditDeviceDialogOpen}
         onOpenChange={setIsEditDeviceDialogOpen}
-        device={
-          selectedDevice
-            ? {
-                id: selectedDevice.id,
-                label: selectedDevice.label,
-                mac_address: selectedDevice.mac_address,
-                user_id: selectedDevice.user_id,
-                sensors: [],
-              }
-            : null
-        }
+        device={selectedDevice || null}
       />
     </>
   );

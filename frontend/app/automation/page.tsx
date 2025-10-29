@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { EditAutomationDialog } from "@/components/automation/edit-automation-dialog";
 import { AddAutomationDialog } from "@/components/automation/add-automation-dialog";
 import { DeleteAutomationDialog } from "@/components/automation/delete-automation-dialog";
@@ -32,6 +31,7 @@ import { useAutomationsAutomationGet } from "@/lib/api/automations/automations";
 import type { AutomationResponseSchema } from "@/lib/api/model";
 import { Loading } from "@/components/common/loading";
 import { ErrorMessage } from "@/components/common/error";
+import { SearchBar } from "@/components/common/search-bar";
 
 export default function AutomationPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -106,18 +106,14 @@ export default function AutomationPage() {
             Create Rule
           </Button>
         </div>
-
         <Card>
           <CardContent className="pt-6">
-            <div className="relative flex-1">
-              <Search className="text-muted-foreground absolute top-2.5 left-3 size-4" />
-              <Input
-                placeholder="Search automation rules..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search automation rules..."
+              icon={<Search className="size-4" />}
+            />
           </CardContent>
         </Card>
 
@@ -249,19 +245,12 @@ export default function AutomationPage() {
             );
           })}
         </div>
-
         {automations.length === 0 && (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <p className="text-muted-foreground text-center">
                 No automation rules found matching your criteria
               </p>
-              <Link href="/automation/add">
-                <Button className="mt-4">
-                  <Plus className="mr-2 size-4" />
-                  Create Your First Rule
-                </Button>
-              </Link>
             </CardContent>
           </Card>
         )}

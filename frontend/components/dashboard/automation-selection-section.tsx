@@ -11,19 +11,19 @@ import {
 } from "@/components/ui/select";
 
 interface Automation {
-  id: string;
+  id: number;
   name: string;
-  device: string;
-  status: string;
-  description: string;
-  lastTriggered: string;
-  triggerCount: number;
+  device?: string;
+  status?: string;
+  description?: string;
+  lastTriggered?: string;
+  triggerCount?: number;
 }
 
 interface AutomationSelectionSectionProps {
   automations: Automation[];
-  selectedAutomationId: string;
-  onAutomationChange: (automationId: string) => void;
+  selectedAutomationId: number | null;
+  onAutomationChange: (automationId: number) => void;
   onEditClick: () => void;
   hasSelectedAutomation: boolean;
 }
@@ -49,13 +49,16 @@ export function AutomationSelectionSection({
         </div>
       </CardHeader>
       <CardContent>
-        <Select value={selectedAutomationId} onValueChange={onAutomationChange}>
+        <Select
+          value={selectedAutomationId?.toString() || ""}
+          onValueChange={(value) => onAutomationChange(Number(value))}
+        >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {automations.map((automation) => (
-              <SelectItem key={automation.id} value={automation.id}>
+              <SelectItem key={automation.id} value={automation.id.toString()}>
                 <div className="flex items-center gap-2">
                   <Badge
                     variant={
@@ -63,7 +66,7 @@ export function AutomationSelectionSection({
                     }
                     className="text-xs"
                   >
-                    {automation.status}
+                    {automation.status || "inactive"}
                   </Badge>
                   <span>{automation.name}</span>
                 </div>

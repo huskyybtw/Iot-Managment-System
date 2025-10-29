@@ -24,6 +24,7 @@ import { Plus, Trash2 } from "lucide-react";
 import type {
   AutomationResponseSchema,
   ActionResponseSchema,
+  ConditionType,
 } from "@/lib/api/model";
 import {
   useUpdateAutomationIdPatch,
@@ -52,17 +53,17 @@ export function EditAutomationDialog({
   const { mutateAsync, isPending } = useUpdateAutomationIdPatch();
 
   const [name, setName] = useState("");
-  const [condition, setCondition] = useState("");
-  const [onValue, setOnValue] = useState("");
-  const [sensorId, setSensorId] = useState("");
+  const [condition, setCondition] = useState<ConditionType>("gt");
+  const [onValue, setOnValue] = useState<number>(0);
+  const [sensorId, setSensorId] = useState<number>(0);
   const [actions, setActions] = useState<ActionWithChanges[]>([]);
 
   useEffect(() => {
     if (automation && open) {
       setName(automation.name);
       setCondition(automation.condition);
-      setOnValue(String(automation.on_value));
-      setSensorId(String(automation.sensor_id));
+      setOnValue(automation.on_value);
+      setSensorId(automation.sensor_id);
       setActions(automation.actions.map((action) => ({ ...action })));
     }
   }, [automation, open]);
@@ -111,7 +112,7 @@ export function EditAutomationDialog({
           id,
           type,
           target,
-          value: value || null,
+          value: value || "No subject provided",
         }));
 
       const newActions = actions
@@ -119,7 +120,7 @@ export function EditAutomationDialog({
         .map(({ type, target, value }) => ({
           type,
           target,
-          value: value || null,
+          value: value || "No subject provided",
         }));
 
       const deleteActions = actions
@@ -129,14 +130,12 @@ export function EditAutomationDialog({
       const payload = {
         name,
         condition,
-        on_value: Number(onValue),
-        sensor_id: Number(sensorId),
+        on_value: onValue,
+        sensor_id: sensorId,
         actions: existingActions,
         new_actions: newActions,
         delete_actions: deleteActions,
       };
-
-      console.log("Sending payload:", payload);
 
       await mutateAsync({ id: automation.id, data: payload });
 
@@ -146,24 +145,11 @@ export function EditAutomationDialog({
       });
       onOpenChange(false);
     } catch (error: any) {
-      console.error("Update error:", error);
-
-      let errorMessage = "Failed to update automation";
-
-      if (error?.response?.data?.detail) {
-        const detail = error.response.data.detail;
-        if (typeof detail === "string") {
-          errorMessage = detail;
-        } else if (Array.isArray(detail)) {
-          errorMessage = detail
-            .map((err: any) => err.msg || JSON.stringify(err))
-            .join(", ");
-        } else {
-          errorMessage = JSON.stringify(detail);
-        }
-      }
-
-      toast.error(errorMessage);
+      const message =
+        error?.response?.data?.detail || "Failed to update automation";
+      toast.error(
+        typeof message === "string" ? message : JSON.stringify(message)
+      );
     }
   };
 
@@ -194,7 +180,7 @@ export function EditAutomationDialog({
                 id="sensor-id"
                 type="number"
                 value={sensorId}
-                onChange={(e) => setSensorId(e.target.value)}
+                onChange={(e) => setSensorId(Number(e.target.value))}
                 placeholder="e.g., 1"
               />
             </div>
@@ -203,7 +189,10 @@ export function EditAutomationDialog({
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="condition">Condition</Label>
-              <Select value={condition} onValueChange={setCondition}>
+              <Select
+                value={condition}
+                onValueChange={(value) => setCondition(value as ConditionType)}
+              >
                 <SelectTrigger id="condition">
                   <SelectValue placeholder="Select condition" />
                 </SelectTrigger>
@@ -223,7 +212,7 @@ export function EditAutomationDialog({
                 id="threshold"
                 type="number"
                 value={onValue}
-                onChange={(e) => setOnValue(e.target.value)}
+                onChange={(e) => setOnValue(Number(e.target.value))}
                 placeholder="e.g., 25"
               />
             </div>

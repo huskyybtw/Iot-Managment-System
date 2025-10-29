@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { EditAutomationDialog } from "@/components/automation/edit-automation-dialog";
+import { useAutomationsAutomationGet } from "@/lib/api/automations/automations";
+import type { AutomationResponseSchema } from "@/lib/api/model";
+import { Loading } from "@/components/common/loading";
+import { ErrorMessage } from "@/components/common/error";
 import { AutomationStatsCards } from "./automation-stats-cards";
 import { AutomationSelectionSection } from "./automation-selection-section";
 import { AutomationHistorySection } from "./automation-history-section";
@@ -12,79 +16,82 @@ interface Trigger {
   target: string;
 }
 
-interface Automation {
-  id: string;
-  name: string;
-  device: string;
-  status: string;
-  description: string;
+interface AutomationWithTriggers extends AutomationResponseSchema {
+  device?: string;
+  status?: string;
+  description?: string;
   triggers: Trigger[];
-  lastTriggered: string;
-  triggerCount: number;
+  lastTriggered?: string;
+  triggerCount?: number;
 }
 
 interface AutomationViewProps {
-  initialAutomationId?: string;
+  initialAutomationId?: number;
 }
 
-export function AutomationView({
-  initialAutomationId = "auto-1",
-}: AutomationViewProps) {
-  const [selectedAutomationId, setSelectedAutomationId] =
-    useState(initialAutomationId);
+export function AutomationView({ initialAutomationId }: AutomationViewProps) {
+  const {
+    data: automationsData,
+    isLoading,
+    error,
+  } = useAutomationsAutomationGet();
+  const automations = automationsData?.data ?? [];
+
+  const [selectedAutomationId, setSelectedAutomationId] = useState<
+    number | null
+  >(null);
   const [isEditAutomationDialogOpen, setIsEditAutomationDialogOpen] =
     useState(false);
 
-  const automations: Automation[] = [
-    {
-      id: "auto-1",
-      name: "High Temperature Alert",
-      device: "Temperature Sensor - Lab A",
-      status: "active",
-      description: "Send email when temperature exceeds 25°C",
-      triggers: [
-        {
-          condition: "Temperature > 25°C",
-          action: "Send Email",
-          target: "admin@company.com",
-        },
-        {
-          condition: "Temperature > 30°C",
-          action: "Send SMS",
-          target: "+1234567890",
-        },
-      ],
-      lastTriggered: "2 hours ago",
-      triggerCount: 3,
-    },
-    {
-      id: "auto-2",
-      name: "Power Overload Protection",
-      device: "Power Monitor - Server Room",
-      status: "active",
-      description: "Alert when power consumption is too high",
-      triggers: [
-        {
-          condition: "Power > 250W",
-          action: "Send Email",
-          target: "admin@company.com",
-        },
-      ],
-      lastTriggered: "15 min ago",
-      triggerCount: 1,
-    },
-  ];
+  // Set initial automation when data loads
+  useEffect(() => {
+    if (automations.length > 0 && selectedAutomationId === null) {
+      const automationId = initialAutomationId || automations[0].id;
+      setSelectedAutomationId(automationId);
+    }
+  }, [automations, initialAutomationId, selectedAutomationId]);
 
-  const selectedAutomation = automations.find(
+  if (isLoading) {
+    return <Loading message="Loading automations..." />;
+  }
+
+  if (error) {
+    return <ErrorMessage message="Error loading automations" />;
+  }
+
+  if (automations.length === 0) {
+    return <ErrorMessage message="No automations found" />;
+  }
+
+  // Enrich automations with UI-specific data
+  const enrichedAutomations: AutomationWithTriggers[] = automations.map(
+    (automation) => ({
+      ...automation,
+      device: `Sensor ${automation.sensor_id}`, // Could fetch sensor details later
+      status: "active", // Could be added to API later
+      description: `Send notification when sensor value is ${automation.condition} ${automation.on_value}`,
+      triggers: automation.actions.map((action) => ({
+        condition: `Value ${automation.condition} ${automation.on_value}`,
+        action: action.type === "email" ? "Send Email" : action.type,
+        target: action.target,
+      })),
+      lastTriggered: "Unknown", // Would need trigger history from API
+      triggerCount: 0, // Would need trigger history from API
+    })
+  );
+
+  const selectedAutomation = enrichedAutomations.find(
+    (a) => a.id === selectedAutomationId
+  );
+
+  const selectedAutomationRaw = automations.find(
     (a) => a.id === selectedAutomationId
   );
 
   return (
     <>
-      <AutomationStatsCards automations={automations} />
-
       <AutomationSelectionSection
-        automations={automations}
+        automations={enrichedAutomations}
         selectedAutomationId={selectedAutomationId}
         onAutomationChange={setSelectedAutomationId}
         onEditClick={() => setIsEditAutomationDialogOpen(true)}
@@ -98,7 +105,7 @@ export function AutomationView({
       <EditAutomationDialog
         open={isEditAutomationDialogOpen}
         onOpenChange={setIsEditAutomationDialogOpen}
-        automation={selectedAutomation}
+        automation={selectedAutomationRaw || null}
       />
     </>
   );

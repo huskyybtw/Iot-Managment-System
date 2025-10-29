@@ -15,14 +15,14 @@ interface Trigger {
 }
 
 interface Automation {
-  id: string;
+  id: number;
   name: string;
-  device: string;
-  status: string;
-  description: string;
+  device?: string;
+  status?: string;
+  description?: string;
   triggers: Trigger[];
-  lastTriggered: string;
-  triggerCount: number;
+  lastTriggered?: string;
+  triggerCount?: number;
 }
 
 interface AutomationHistorySectionProps {
@@ -38,12 +38,14 @@ export function AutomationHistorySection({
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>{automation.name}</CardTitle>
-            <CardDescription>{automation.description}</CardDescription>
+            <CardDescription>
+              {automation.description || "No description"}
+            </CardDescription>
           </div>
           <Badge
             variant={automation.status === "active" ? "default" : "secondary"}
           >
-            {automation.status}
+            {automation.status || "inactive"}
           </Badge>
         </div>
       </CardHeader>
@@ -52,19 +54,25 @@ export function AutomationHistorySection({
           <div className="grid gap-2 text-sm md:grid-cols-3">
             <div>
               <span className="text-muted-foreground text-xs">Device:</span>{" "}
-              <span className="font-medium">{automation.device}</span>
+              <span className="font-medium">
+                {automation.device || "Unknown"}
+              </span>
             </div>
             <div>
               <span className="text-muted-foreground text-xs">
                 Last Triggered:
               </span>{" "}
-              <span className="font-medium">{automation.lastTriggered}</span>
+              <span className="font-medium">
+                {automation.lastTriggered || "Never"}
+              </span>
             </div>
             <div>
               <span className="text-muted-foreground text-xs">
                 Trigger Count:
               </span>{" "}
-              <span className="font-medium">{automation.triggerCount}</span>
+              <span className="font-medium">
+                {automation.triggerCount || 0}
+              </span>
             </div>
           </div>
           <Separator />

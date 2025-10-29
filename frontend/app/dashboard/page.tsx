@@ -15,8 +15,8 @@ import { AutomationView } from "@/components/dashboard/automation-view";
 export default function DashboardPage() {
   const searchParams = useSearchParams();
   const initialView = searchParams.get("view") || "device";
-  const initialDeviceId = searchParams.get("deviceId") || "device-1";
-  const initialAutomationId = searchParams.get("automationId") || "auto-1";
+  const initialDeviceId = searchParams.get("deviceId");
+  const initialAutomationId = searchParams.get("automationId");
 
   const [selectedView, setSelectedView] = useState<"device" | "automation">(
     initialView as "device" | "automation"
@@ -47,11 +47,19 @@ export default function DashboardPage() {
         </div>
 
         {selectedView === "device" && (
-          <DeviceView initialDeviceId={initialDeviceId} />
+          <DeviceView
+            initialDeviceId={
+              initialDeviceId ? Number(initialDeviceId) : undefined
+            }
+          />
         )}
 
         {selectedView === "automation" && (
-          <AutomationView initialAutomationId={initialAutomationId} />
+          <AutomationView
+            initialAutomationId={
+              initialAutomationId ? Number(initialAutomationId) : undefined
+            }
+          />
         )}
       </div>
     </div>

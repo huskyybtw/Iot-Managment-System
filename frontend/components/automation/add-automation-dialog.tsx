@@ -1,9 +1,8 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Zap, Bell, Mail, Phone, Plus, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Bell, Mail, Plus, X } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -21,34 +20,100 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useDevicesDevicesGet } from "@/lib/api/devices/devices";
+import {
+  useCreateAutomationPost,
+  getAutomationsAutomationGetQueryKey,
+} from "@/lib/api/automations/automations";
+import type {
+  DeviceResponse,
+  SensorResponse,
+  ActionType,
+} from "@/lib/api/model";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface AddAutomationDialogProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
 }
 
+interface Action {
+  id: string;
+  type: ActionType;
+  target: string;
+  value: string;
+}
+
 export function AddAutomationDialog({
   isOpen,
   setIsOpen,
 }: AddAutomationDialogProps) {
-  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [name, setName] = useState("");
+  const [condition, setCondition] = useState<"lt" | "gt" | "eq">("gt");
+  const [onValue, setOnValue] = useState("");
+  const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
+  const [selectedSensorId, setSelectedSensorId] = useState<number | null>(null);
+  const [actions, setActions] = useState<Action[]>([
+    { id: "1", type: "email" as ActionType, target: "", value: "" },
+  ]);
 
-  const [actions, setActions] = useState<
-    Array<{ id: string; type: string; config: any }>
-  >([{ id: "1", type: "", config: {} }]);
+  const { data: devicesData, isLoading: isLoadingDevices } =
+    useDevicesDevicesGet();
+  const devices = devicesData?.data ?? [];
+
+  const selectedDevice = devices.find((d) => d.id === selectedDeviceId);
+  const sensors = selectedDevice?.sensors ?? [];
+
+  const { mutate: createAutomation, isPending } = useCreateAutomationPost({
+    mutation: {
+      onSuccess: () => {
+        toast.success("Automation created successfully");
+        queryClient.invalidateQueries({
+          queryKey: getAutomationsAutomationGetQueryKey(),
+        });
+        setIsOpen(false);
+        resetForm();
+      },
+      onError: (error: any) => {
+        const message =
+          error?.response?.data?.detail || "Failed to create automation";
+        toast.error(
+          typeof message === "string" ? message : JSON.stringify(message)
+        );
+      },
+    },
+  });
+
+  const resetForm = () => {
+    setName("");
+    setCondition("gt");
+    setOnValue("");
+    setSelectedDeviceId(null);
+    setSelectedSensorId(null);
+    setActions([
+      { id: "1", type: "email" as ActionType, target: "", value: "" },
+    ]);
+  };
 
   const addAction = () => {
     setActions([
       ...actions,
-      { id: Date.now().toString(), type: "", config: {} },
+      {
+        id: Date.now().toString(),
+        type: "email" as ActionType,
+        target: "",
+        value: "",
+      },
     ]);
   };
 
@@ -58,28 +123,54 @@ export function AddAutomationDialog({
     }
   };
 
-  const updateActionType = (id: string, type: string) => {
+  const updateAction = (
+    id: string,
+    field: keyof Action,
+    value: string | ActionType
+  ) => {
     setActions(
       actions.map((action) =>
-        action.id === id ? { ...action, type, config: {} } : action
+        action.id === id ? { ...action, [field]: value } : action
       )
     );
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsOpen(false);
-    setTimeout(() => router.push("/automation"), 200);
+
+    if (!selectedSensorId) {
+      toast.error("Please select a sensor");
+      return;
+    }
+
+    const payload = {
+      name,
+      condition,
+      on_value: parseInt(onValue),
+      sensor_id: selectedSensorId,
+      actions: actions.map(({ type, target, value }) => ({
+        type,
+        target,
+        value: value || "No subject provided",
+      })),
+    };
+
+    createAutomation({ data: payload });
   };
 
   const handleClose = () => {
     setIsOpen(false);
-    setTimeout(() => router.push("/automation"), 200);
+    resetForm();
   };
+
+  // Reset sensor selection when device changes
+  useEffect(() => {
+    setSelectedSensorId(null);
+  }, [selectedDeviceId]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">Create Automation Rule</DialogTitle>
           <DialogDescription>
@@ -93,7 +184,7 @@ export function AddAutomationDialog({
             <CardHeader>
               <CardTitle>Rule Information</CardTitle>
               <CardDescription>
-                Give your automation rule a name and description
+                Give your automation rule a name
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -102,66 +193,91 @@ export function AddAutomationDialog({
                 <Input
                   id="rule-name"
                   placeholder="e.g., High Temperature Alert"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="rule-description">Description</Label>
-                <Input
-                  id="rule-description"
-                  placeholder="Describe what this rule does"
-                />
-              </div>
             </CardContent>
-            : setISOpen,
           </Card>
 
           {/* Trigger Configuration */}
           <Card>
             <CardHeader>
-              <div className="flex items-center gap-2">
-                <Zap className="size-5 text-primary" />
-                <CardTitle>Trigger Condition</CardTitle>
-              </div>
+              <CardTitle>Trigger Condition</CardTitle>
               <CardDescription>
                 Define when this automation should be triggered
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="trigger-device">Device</Label>
-                <Select required>
-                  <SelectTrigger id="trigger-device">
-                    <SelectValue placeholder="Select device" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="temp-lab-a">
-                      Temperature Sensor - Lab A
-                    </SelectItem>
-                    <SelectItem value="humidity-warehouse">
-                      Humidity Sensor - Warehouse
-                    </SelectItem>
-                    <SelectItem value="power-server">
-                      Power Monitor - Server Room
-                    </SelectItem>
-                    <SelectItem value="motion-entrance">
-                      Motion Detector - Entrance
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="trigger-device">Device</Label>
+                  <Select
+                    value={selectedDeviceId?.toString()}
+                    onValueChange={(value) =>
+                      setSelectedDeviceId(parseInt(value))
+                    }
+                    required
+                    disabled={isLoadingDevices}
+                  >
+                    <SelectTrigger id="trigger-device">
+                      <SelectValue placeholder="Select device" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {devices.map((device) => (
+                        <SelectItem
+                          key={device.id}
+                          value={device.id.toString()}
+                        >
+                          {device.label || device.mac_address}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="trigger-sensor">Sensor</Label>
+                  <Select
+                    value={selectedSensorId?.toString()}
+                    onValueChange={(value) =>
+                      setSelectedSensorId(parseInt(value))
+                    }
+                    required
+                    disabled={!selectedDeviceId || sensors.length === 0}
+                  >
+                    <SelectTrigger id="trigger-sensor">
+                      <SelectValue placeholder="Select sensor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sensors.map((sensor) => (
+                        <SelectItem
+                          key={sensor.id}
+                          value={sensor.id.toString()}
+                        >
+                          {sensor.label || `Sensor ${sensor.id}`} ({sensor.type}
+                          )
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="trigger-condition">Condition</Label>
-                  <Select required>
+                  <Select
+                    value={condition}
+                    onValueChange={(value: any) => setCondition(value)}
+                    required
+                  >
                     <SelectTrigger id="trigger-condition">
                       <SelectValue placeholder="Select condition" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="greater_than">Greater than</SelectItem>
-                      <SelectItem value="less_than">Less than</SelectItem>
-                      <SelectItem value="equals">Equals</SelectItem>
-                      <SelectItem value="not_equals">Not equals</SelectItem>
+                      <SelectItem value="gt">Greater than (&gt;)</SelectItem>
+                      <SelectItem value="lt">Less than (&lt;)</SelectItem>
+                      <SelectItem value="eq">Equals (=)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -171,6 +287,8 @@ export function AddAutomationDialog({
                     id="trigger-value"
                     placeholder="e.g., 25"
                     type="number"
+                    value={onValue}
+                    onChange={(e) => setOnValue(e.target.value)}
                     required
                   />
                 </div>
@@ -178,6 +296,7 @@ export function AddAutomationDialog({
             </CardContent>
           </Card>
 
+          {/* Actions */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -199,7 +318,7 @@ export function AddAutomationDialog({
                 Define what should happen when the trigger condition is met
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               {actions.map((action, index) => (
                 <div
                   key={action.id}
@@ -226,7 +345,7 @@ export function AddAutomationDialog({
                     <Select
                       value={action.type}
                       onValueChange={(type) =>
-                        updateActionType(action.id, type)
+                        updateAction(action.id, "type", type)
                       }
                       required
                     >
@@ -234,115 +353,64 @@ export function AddAutomationDialog({
                         <SelectValue placeholder="Select action" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="notification">
-                          Send Notification
-                        </SelectItem>
                         <SelectItem value="email">Send Email</SelectItem>
-                        <SelectItem value="sms">Send SMS</SelectItem>
-                        <SelectItem value="device_control">
-                          Control Device
-                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {action.type === "notification" && (
-                    <div className="space-y-2">
-                      <Label htmlFor={`notification-message-${action.id}`}>
-                        Notification Message
-                      </Label>
+                  <div className="space-y-2">
+                    <Label htmlFor={`email-address-${action.id}`}>
+                      Email Address
+                    </Label>
+                    <div className="relative">
+                      <Mail className="text-muted-foreground absolute top-2.5 left-3 size-4" />
                       <Input
-                        id={`notification-message-${action.id}`}
-                        placeholder="Alert message"
+                        id={`email-address-${action.id}`}
+                        type="email"
+                        placeholder="your@email.com"
+                        className="pl-9"
+                        value={action.target}
+                        onChange={(e) =>
+                          updateAction(action.id, "target", e.target.value)
+                        }
+                        required
                       />
                     </div>
-                  )}
+                  </div>
 
-                  {action.type === "email" && (
-                    <div className="space-y-2">
-                      <Label htmlFor={`email-address-${action.id}`}>
-                        Email Address
-                      </Label>
-                      <div className="relative">
-                        <Mail className="text-muted-foreground absolute top-2.5 left-3 size-4" />
-                        <Input
-                          id={`email-address-${action.id}`}
-                          type="email"
-                          placeholder="your@email.com"
-                          className="pl-9"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {action.type === "sms" && (
-                    <div className="space-y-2">
-                      <Label htmlFor={`phone-number-${action.id}`}>
-                        Phone Number
-                      </Label>
-                      <div className="relative">
-                        <Phone className="text-muted-foreground absolute top-2.5 left-3 size-4" />
-                        <Input
-                          id={`phone-number-${action.id}`}
-                          type="tel"
-                          placeholder="+1 (555) 000-0000"
-                          className="pl-9"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {action.type === "device_control" && (
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor={`target-device-${action.id}`}>
-                          Target Device
-                        </Label>
-                        <Select>
-                          <SelectTrigger id={`target-device-${action.id}`}>
-                            <SelectValue placeholder="Select device" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="thermostat">
-                              Smart Thermostat - Office
-                            </SelectItem>
-                            <SelectItem value="lights">
-                              Smart Lights - Entrance
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`device-command-${action.id}`}>
-                          Command
-                        </Label>
-                        <Select>
-                          <SelectTrigger id={`device-command-${action.id}`}>
-                            <SelectValue placeholder="Select command" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="turn_on">Turn On</SelectItem>
-                            <SelectItem value="turn_off">Turn Off</SelectItem>
-                            <SelectItem value="toggle">Toggle</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  )}
-
-                  {index < actions.length - 1 && <Separator />}
+                  <div className="space-y-2">
+                    <Label htmlFor={`email-subject-${action.id}`}>
+                      Email Subject (Optional)
+                    </Label>
+                    <Input
+                      id={`email-subject-${action.id}`}
+                      placeholder="e.g., Temperature Alert"
+                      value={action.value}
+                      onChange={(e) =>
+                        updateAction(action.id, "value", e.target.value)
+                      }
+                    />
+                  </div>
                 </div>
               ))}
             </CardContent>
           </Card>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={handleClose}>
+          {/* Dialog Footer */}
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isPending}
+              className="sm:mr-2"
+            >
               Cancel
             </Button>
-            <Button type="submit">Create Rule</Button>
-          </div>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Creating..." : "Create Rule"}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
