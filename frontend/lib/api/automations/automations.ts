@@ -33,6 +33,7 @@ import type {
 import type {
   AutomationCreateSchema,
   AutomationResponseSchema,
+  AutomationUpdateSchema,
   AutomationsAutomationGetParams,
   HTTPValidationError
 } from '.././model';
@@ -190,6 +191,128 @@ export const useCreateAutomationPost = <TError = AxiosError<HTTPValidationError>
       > => {
 
       const mutationOptions = getCreateAutomationPostMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary Update
+ */
+export const updateAutomationIdPatch = (
+    id: number,
+    automationUpdateSchema: AutomationUpdateSchema, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<AutomationResponseSchema>> => {
+    
+    
+    return axios.patch(
+      `http://127.0.0.1:8000/automation/${id}`,
+      automationUpdateSchema,options
+    );
+  }
+
+
+
+export const getUpdateAutomationIdPatchMutationOptions = <TError = AxiosError<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAutomationIdPatch>>, TError,{id: number;data: AutomationUpdateSchema}, TContext>, axios?: AxiosRequestConfig}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAutomationIdPatch>>, TError,{id: number;data: AutomationUpdateSchema}, TContext> => {
+
+const mutationKey = ['updateAutomationIdPatch'];
+const {mutation: mutationOptions, axios: axiosOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, axios: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAutomationIdPatch>>, {id: number;data: AutomationUpdateSchema}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAutomationIdPatch(id,data,axiosOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAutomationIdPatchMutationResult = NonNullable<Awaited<ReturnType<typeof updateAutomationIdPatch>>>
+    export type UpdateAutomationIdPatchMutationBody = AutomationUpdateSchema
+    export type UpdateAutomationIdPatchMutationError = AxiosError<HTTPValidationError>
+
+    /**
+ * @summary Update
+ */
+export const useUpdateAutomationIdPatch = <TError = AxiosError<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAutomationIdPatch>>, TError,{id: number;data: AutomationUpdateSchema}, TContext>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateAutomationIdPatch>>,
+        TError,
+        {id: number;data: AutomationUpdateSchema},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateAutomationIdPatchMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary Delete
+ */
+export const deleteAutomationIdDelete = (
+    id: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<unknown>> => {
+    
+    
+    return axios.delete(
+      `http://127.0.0.1:8000/automation/${id}`,options
+    );
+  }
+
+
+
+export const getDeleteAutomationIdDeleteMutationOptions = <TError = AxiosError<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAutomationIdDelete>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAutomationIdDelete>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteAutomationIdDelete'];
+const {mutation: mutationOptions, axios: axiosOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, axios: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAutomationIdDelete>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteAutomationIdDelete(id,axiosOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAutomationIdDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAutomationIdDelete>>>
+    
+    export type DeleteAutomationIdDeleteMutationError = AxiosError<HTTPValidationError>
+
+    /**
+ * @summary Delete
+ */
+export const useDeleteAutomationIdDelete = <TError = AxiosError<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAutomationIdDelete>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAutomationIdDelete>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteAutomationIdDeleteMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }

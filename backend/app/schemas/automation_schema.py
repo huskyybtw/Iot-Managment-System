@@ -1,6 +1,10 @@
 from tortoise.contrib.pydantic import pydantic_model_creator
 from app.models.automation_model import Automation
-from app.schemas.action_schema import ActionCreateSchema, ActionResponseSchema
+from app.schemas.action_schema import (
+    ActionCreateSchema,
+    ActionResponseSchema,
+    ActionUpdateSchema,
+)
 
 BaseAutomationResponseSchema = pydantic_model_creator(
     Automation,
@@ -19,6 +23,7 @@ BaseAutomationCreateSchema = pydantic_model_creator(
     exclude=(
         "id",
         "user",
+        "user_id",
         "sensor",
         "actions",
     ),
@@ -27,3 +32,9 @@ BaseAutomationCreateSchema = pydantic_model_creator(
 
 class AutomationCreateSchema(BaseAutomationCreateSchema):
     actions: list[ActionCreateSchema]
+
+
+class AutomationUpdateSchema(BaseAutomationCreateSchema):
+    actions: list[ActionUpdateSchema]
+    new_actions: list[ActionCreateSchema]
+    delete_actions: list[int] = []

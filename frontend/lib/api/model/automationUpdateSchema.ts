@@ -5,9 +5,10 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ConditionType } from './conditionType';
+import type { ActionUpdateSchema } from './actionUpdateSchema';
 import type { ActionCreateSchema } from './actionCreateSchema';
 
-export interface AutomationCreateSchema {
+export interface AutomationUpdateSchema {
   /** @maxLength 255 */
   name: string;
   /**
@@ -25,5 +26,7 @@ export interface AutomationCreateSchema {
    * @maximum 2147483647
    */
   sensor_id: number;
-  actions: ActionCreateSchema[];
+  actions: ActionUpdateSchema[];
+  new_actions: ActionCreateSchema[];
+  delete_actions?: number[];
 }

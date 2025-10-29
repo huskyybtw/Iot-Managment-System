@@ -14,7 +14,6 @@ import {
   Edit,
   Trash2,
   Search,
-  Filter,
 } from "lucide-react";
 import {
   Card,
@@ -25,65 +24,40 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { EditAutomationDialog } from "@/components/automation/edit-automation-dialog";
 import { AddAutomationDialog } from "@/components/automation/add-automation-dialog";
-import { set } from "react-hook-form";
+import { DeleteAutomationDialog } from "@/components/automation/delete-automation-dialog";
+import { useAutomationsAutomationGet } from "@/lib/api/automations/automations";
+import type { AutomationResponseSchema } from "@/lib/api/model";
+import { Loading } from "@/components/common/loading";
+import { ErrorMessage } from "@/components/common/error";
+
 export default function AutomationPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedAutomation, setSelectedAutomation] = useState<any>(null);
-  type AutomationRule = {
-    id: string;
-    name: string;
-    description: string;
-    device: string;
-    location: string;
-    enabled: boolean;
-    action: {
-      type: string;
-      method: string;
-      target: string;
-    };
-    trigger: {
-      condition: string;
-      value: string;
-      unit: string;
-    };
-    lastTriggered: string;
-    triggerCount: number;
-    createdAt: string;
-  };
-
-  const [rules, setRules] = useState<AutomationRule[]>([
-    {
-      id: "1",
-      name: "Turn on fan when hot",
-      description: "Turns on the fan when temperature exceeds 30°C",
-      device: "Fan",
-      location: "Lab A",
-      enabled: true,
-      action: { type: "device_control", method: "turn_on", target: "Fan" },
-      trigger: { condition: "temperature_above", value: "30", unit: "°C" },
-      lastTriggered: "2025-10-27 10:00",
-      triggerCount: 5,
-      createdAt: "2025-10-20",
-    },
-  ]);
+  const [selectedAutomation, setSelectedAutomation] =
+    useState<AutomationResponseSchema | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [automationToDelete, setAutomationToDelete] =
+    useState<AutomationResponseSchema | null>(null);
 
-  const toggleRule = (id: string) => {};
+  const { data, isLoading, error } = useAutomationsAutomationGet({
+    search: searchQuery || undefined,
+  });
+  const automations = data?.data ?? [];
 
-  const deleteRule = (id: string) => {};
+  const router = useRouter();
+
+  const handleDelete = (
+    automation: AutomationResponseSchema,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+    setAutomationToDelete(automation);
+    setIsDeleteDialogOpen(true);
+  };
 
   const getActionIcon = (type: string) => {
     switch (type) {
@@ -98,24 +72,22 @@ export default function AutomationPage() {
     }
   };
 
-  const filteredRules = rules.filter((rule) => {
-    const matchesSearch = rule.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesFilter =
-      filterStatus === "all" ||
-      (filterStatus === "active" && rule.enabled) ||
-      (filterStatus === "inactive" && !rule.enabled);
-    return matchesSearch && matchesFilter;
-  });
-
-  const router = useRouter();
-
-  const handleEdit = (rule: any, e: React.MouseEvent) => {
+  const handleEdit = (
+    automation: AutomationResponseSchema,
+    e: React.MouseEvent
+  ) => {
     e.stopPropagation();
-    setSelectedAutomation(rule);
+    setSelectedAutomation(automation);
     setIsEditDialogOpen(true);
   };
+
+  if (isLoading) {
+    return <Loading message="Loading automations..." />;
+  }
+
+  if (error) {
+    return <ErrorMessage message="Error loading automations" />;
+  }
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -137,67 +109,61 @@ export default function AutomationPage() {
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <div className="relative flex-1">
-                <Search className="text-muted-foreground absolute top-2.5 left-3 size-4" />
-                <Input
-                  placeholder="Search automation rules..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Filter className="text-muted-foreground size-4" />
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Rules</SelectItem>
-                    <SelectItem value="active">Active Only</SelectItem>
-                    <SelectItem value="inactive">Inactive Only</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="relative flex-1">
+              <Search className="text-muted-foreground absolute top-2.5 left-3 size-4" />
+              <Input
+                placeholder="Search automation rules..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
             </div>
           </CardContent>
         </Card>
 
         <div className="space-y-4">
-          {filteredRules.map((rule) => {
-            const ActionIcon = getActionIcon(rule.action.type);
+          {automations.map((automation) => {
+            const ActionIcon = getActionIcon(automation.actions[0]?.type || "");
             return (
               <Card
-                key={rule.id}
+                key={automation.id}
                 className="cursor-pointer transition-all hover:border-primary/50"
                 onClick={() =>
                   router.push(
-                    `/dashboard?view=automation&automationId=${rule.id}`
+                    `/dashboard?view=automation&automationId=${automation.id}`
                   )
                 }
               >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-3">
-                        <CardTitle className="text-lg">{rule.name}</CardTitle>
-                        <Badge variant={rule.enabled ? "default" : "secondary"}>
-                          {rule.enabled ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                      <CardDescription>{rule.description}</CardDescription>
+                      <CardTitle className="text-lg">
+                        {automation.name}
+                      </CardTitle>
+                      <CardDescription>
+                        Trigger when sensor value is {automation.condition}{" "}
+                        {automation.on_value}
+                      </CardDescription>
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span>Device: {rule.device}</span>
-                        <span>•</span>
-                        <span>Location: {rule.location}</span>
+                        <span>Sensor ID: {automation.sensor_id}</span>
                       </div>
                     </div>
-                    <Switch
-                      checked={rule.enabled}
-                      onCheckedChange={() => toggleRule(rule.id)}
-                      onClick={(e) => e.stopPropagation()}
-                    />
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => handleEdit(automation, e)}
+                      >
+                        <Edit className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => handleDelete(automation, e)}
+                      >
+                        <Trash2 className="size-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -213,16 +179,18 @@ export default function AutomationPage() {
                         <div className="space-y-1.5 text-sm">
                           <div className="flex items-center justify-between">
                             <span className="text-muted-foreground">
-                              Device:
+                              Sensor ID:
                             </span>
-                            <span className="font-medium">{rule.device}</span>
+                            <span className="font-medium">
+                              {automation.sensor_id}
+                            </span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-muted-foreground">
                               Condition:
                             </span>
                             <span className="font-medium capitalize">
-                              {rule.trigger.condition.replace("_", " ")}
+                              {automation.condition}
                             </span>
                           </div>
                           <div className="flex items-center justify-between">
@@ -230,8 +198,7 @@ export default function AutomationPage() {
                               Threshold:
                             </span>
                             <span className="font-medium">
-                              {rule.trigger.value}
-                              {rule.trigger.unit}
+                              {automation.on_value}
                             </span>
                           </div>
                         </div>
@@ -240,78 +207,40 @@ export default function AutomationPage() {
                       <div className="space-y-2 rounded-lg border bg-muted/30 p-4">
                         <div className="flex items-center gap-2">
                           <ActionIcon className="size-4 text-accent" />
-                          <span className="text-sm font-semibold">Action</span>
+                          <span className="text-sm font-semibold">Actions</span>
                         </div>
                         <div className="space-y-1.5 text-sm">
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground">Type:</span>
-                            <span className="font-medium capitalize">
-                              {rule.action.type.replace("_", " ")}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground">
-                              Method:
-                            </span>
-                            <span className="font-medium">
-                              {rule.action.method}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground">
-                              Target:
-                            </span>
-                            <span className="font-medium">
-                              {rule.action.target}
-                            </span>
-                          </div>
+                          {automation.actions.map((action, idx) => (
+                            <div key={idx} className="space-y-1.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">
+                                  Type:
+                                </span>
+                                <span className="font-medium capitalize">
+                                  {action.type}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">
+                                  Target:
+                                </span>
+                                <span className="font-medium">
+                                  {action.target}
+                                </span>
+                              </div>
+                              {action.value && (
+                                <div className="flex items-center justify-between">
+                                  <span className="text-muted-foreground">
+                                    Value:
+                                  </span>
+                                  <span className="font-medium">
+                                    {action.value}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between border-t pt-4">
-                      <div className="flex gap-6 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">
-                            Last triggered:{" "}
-                          </span>
-                          <span className="font-medium">
-                            {rule.lastTriggered}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">
-                            Trigger count:{" "}
-                          </span>
-                          <span className="font-medium">
-                            {rule.triggerCount}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">
-                            Created:{" "}
-                          </span>
-                          <span className="font-medium">{rule.createdAt}</span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => handleEdit(rule, e)}
-                        >
-                          <Edit className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteRule(rule.id);
-                          }}
-                        >
-                          <Trash2 className="size-4 text-destructive" />
-                        </Button>
                       </div>
                     </div>
                   </div>
@@ -321,7 +250,7 @@ export default function AutomationPage() {
           })}
         </div>
 
-        {filteredRules.length === 0 && (
+        {automations.length === 0 && (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <p className="text-muted-foreground text-center">
@@ -346,6 +275,11 @@ export default function AutomationPage() {
       <AddAutomationDialog
         isOpen={isAddDialogOpen}
         setIsOpen={setIsAddDialogOpen}
+      />
+      <DeleteAutomationDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        automation={automationToDelete}
       />
     </div>
   );

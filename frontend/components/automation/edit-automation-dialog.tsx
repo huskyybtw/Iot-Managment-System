@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -21,42 +21,157 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Trash2 } from "lucide-react";
+import type {
+  AutomationResponseSchema,
+  ActionResponseSchema,
+} from "@/lib/api/model";
+import {
+  useUpdateAutomationIdPatch,
+  getAutomationsAutomationGetQueryKey,
+} from "@/lib/api/automations/automations";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface EditAutomationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  automation?: any;
+  automation: AutomationResponseSchema | null;
 }
+
+type ActionWithChanges = ActionResponseSchema & {
+  _isNew?: boolean;
+  _isDeleted?: boolean;
+};
 
 export function EditAutomationDialog({
   open,
   onOpenChange,
   automation,
 }: EditAutomationDialogProps) {
-  const [actions, setActions] = useState(
-    automation?.triggers || [{ condition: "", action: "", target: "" }]
-  );
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useUpdateAutomationIdPatch();
+
+  const [name, setName] = useState("");
+  const [condition, setCondition] = useState("");
+  const [onValue, setOnValue] = useState("");
+  const [sensorId, setSensorId] = useState("");
+  const [actions, setActions] = useState<ActionWithChanges[]>([]);
+
+  useEffect(() => {
+    if (automation && open) {
+      setName(automation.name);
+      setCondition(automation.condition);
+      setOnValue(String(automation.on_value));
+      setSensorId(String(automation.sensor_id));
+      setActions(automation.actions.map((action) => ({ ...action })));
+    }
+  }, [automation, open]);
 
   const addAction = () => {
-    setActions([...actions, { condition: "", action: "", target: "" }]);
+    setActions([
+      ...actions,
+      {
+        id: Date.now(), // Temporary ID for new actions
+        type: "email",
+        target: "",
+        value: "",
+        _isNew: true,
+      } as ActionWithChanges,
+    ]);
   };
 
   const removeAction = (index: number) => {
-    setActions(actions.filter((_: any, i: number) => i !== index));
+    const action = actions[index];
+    if (action._isNew) {
+      // Remove immediately if it's a new action
+      setActions(actions.filter((_, i) => i !== index));
+    } else {
+      // Mark for deletion if it's an existing action
+      setActions(
+        actions.map((a, i) => (i === index ? { ...a, _isDeleted: true } : a))
+      );
+    }
   };
 
-  const handleSave = () => {
-    console.log("[v0] Saving automation:", { automation, actions });
-    onOpenChange(false);
+  const updateAction = (index: number, field: string, value: string) => {
+    setActions(
+      actions.map((action, i) =>
+        i === index ? { ...action, [field]: value } : action
+      )
+    );
+  };
+
+  const handleSave = async () => {
+    if (!automation) return;
+
+    try {
+      const existingActions = actions
+        .filter((a) => !a._isNew && !a._isDeleted)
+        .map(({ id, type, target, value }) => ({
+          id,
+          type,
+          target,
+          value: value || null,
+        }));
+
+      const newActions = actions
+        .filter((a) => a._isNew && !a._isDeleted)
+        .map(({ type, target, value }) => ({
+          type,
+          target,
+          value: value || null,
+        }));
+
+      const deleteActions = actions
+        .filter((a) => a._isDeleted && !a._isNew)
+        .map((a) => a.id);
+
+      const payload = {
+        name,
+        condition,
+        on_value: Number(onValue),
+        sensor_id: Number(sensorId),
+        actions: existingActions,
+        new_actions: newActions,
+        delete_actions: deleteActions,
+      };
+
+      console.log("Sending payload:", payload);
+
+      await mutateAsync({ id: automation.id, data: payload });
+
+      toast.success("Automation updated successfully");
+      queryClient.invalidateQueries({
+        queryKey: getAutomationsAutomationGetQueryKey(),
+      });
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error("Update error:", error);
+
+      let errorMessage = "Failed to update automation";
+
+      if (error?.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (typeof detail === "string") {
+          errorMessage = detail;
+        } else if (Array.isArray(detail)) {
+          errorMessage = detail
+            .map((err: any) => err.msg || JSON.stringify(err))
+            .join(", ");
+        } else {
+          errorMessage = JSON.stringify(detail);
+        }
+      }
+
+      toast.error(errorMessage);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {automation ? "Edit Automation Rule" : "Create Automation Rule"}
-          </DialogTitle>
+          <DialogTitle>Edit Automation Rule</DialogTitle>
           <DialogDescription>
             Configure triggers and actions for your automation rule
           </DialogDescription>
@@ -68,45 +183,59 @@ export function EditAutomationDialog({
               <Label htmlFor="rule-name">Rule Name</Label>
               <Input
                 id="rule-name"
-                defaultValue={automation?.name}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., High Temperature Alert"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="device">Device</Label>
-              <Select defaultValue={automation?.device}>
-                <SelectTrigger id="device">
-                  <SelectValue placeholder="Select device" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="device-1">
-                    Temperature Sensor - Lab A
-                  </SelectItem>
-                  <SelectItem value="device-2">
-                    Power Monitor - Server Room
-                  </SelectItem>
-                  <SelectItem value="device-3">
-                    Air Quality Monitor - Office
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="sensor-id">Sensor ID</Label>
+              <Input
+                id="sensor-id"
+                type="number"
+                value={sensorId}
+                onChange={(e) => setSensorId(e.target.value)}
+                placeholder="e.g., 1"
+              />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Input
-              id="description"
-              defaultValue={automation?.description}
-              placeholder="Describe what this rule does"
-            />
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="condition">Condition</Label>
+              <Select value={condition} onValueChange={setCondition}>
+                <SelectTrigger id="condition">
+                  <SelectValue placeholder="Select condition" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="gt">Greater than</SelectItem>
+                  <SelectItem value="lt">Less than</SelectItem>
+                  <SelectItem value="eq">Equal to</SelectItem>
+                  <SelectItem value="gte">Greater than or equal</SelectItem>
+                  <SelectItem value="lte">Less than or equal</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="threshold">Threshold Value</Label>
+              <Input
+                id="threshold"
+                type="number"
+                value={onValue}
+                onChange={(e) => setOnValue(e.target.value)}
+                placeholder="e.g., 25"
+              />
+            </div>
           </div>
 
           <Separator />
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-base">Actions ({actions.length})</Label>
+              <Label className="text-base">
+                Actions ({actions.filter((a) => !a._isDeleted).length})
+              </Label>
               <Button
                 type="button"
                 variant="outline"
@@ -118,100 +247,104 @@ export function EditAutomationDialog({
               </Button>
             </div>
 
-            {actions.map((action: any, index: number) => (
-              <div key={index} className="space-y-4 rounded-lg border p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold">
-                    Action {index + 1}
-                  </span>
-                  {actions.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeAction(index)}
-                    >
-                      <Trash2 className="size-4 text-destructive" />
-                    </Button>
-                  )}
-                </div>
+            {actions
+              .filter((a) => !a._isDeleted)
+              .map((action, index) => (
+                <div
+                  key={action.id}
+                  className="space-y-4 rounded-lg border p-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold">
+                      Action {index + 1}
+                      {action._isNew && (
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          (New)
+                        </span>
+                      )}
+                    </span>
+                    {actions.filter((a) => !a._isDeleted).length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeAction(actions.indexOf(action))}
+                      >
+                        <Trash2 className="size-4 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
 
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="space-y-2">
-                    <Label>Sensor</Label>
-                    <Select defaultValue={action.sensor}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select sensor" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="temperature">Temperature</SelectItem>
-                        <SelectItem value="humidity">Humidity</SelectItem>
-                        <SelectItem value="power">Power</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Action Type</Label>
+                      <Select
+                        value={action.type}
+                        onValueChange={(value) =>
+                          updateAction(actions.indexOf(action), "type", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select action type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="email">Send Email</SelectItem>
+                          <SelectItem value="sms">Send SMS</SelectItem>
+                          <SelectItem value="push">
+                            Push Notification
+                          </SelectItem>
+                          <SelectItem value="webhook">Webhook</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Target</Label>
+                      <Input
+                        value={action.target}
+                        onChange={(e) =>
+                          updateAction(
+                            actions.indexOf(action),
+                            "target",
+                            e.target.value
+                          )
+                        }
+                        placeholder="e.g., admin@company.com"
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Condition</Label>
-                    <Select defaultValue={action.condition}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select condition" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="greater_than">
-                          Greater than
-                        </SelectItem>
-                        <SelectItem value="less_than">Less than</SelectItem>
-                        <SelectItem value="equal">Equal to</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Value</Label>
+                    <Label>Value (Optional)</Label>
                     <Input
-                      type="number"
-                      defaultValue={action.value}
-                      placeholder="e.g., 25"
+                      value={action.value || ""}
+                      onChange={(e) =>
+                        updateAction(
+                          actions.indexOf(action),
+                          "value",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Optional value for the action"
                     />
                   </div>
                 </div>
-
-                <Separator />
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Action Type</Label>
-                    <Select defaultValue={action.action}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select action" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="email">Send Email</SelectItem>
-                        <SelectItem value="sms">Send SMS</SelectItem>
-                        <SelectItem value="push">Push Notification</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Target</Label>
-                    <Input
-                      defaultValue={action.target}
-                      placeholder="e.g., admin@company.com"
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isPending}
+            className="sm:mr-2"
+          >
             Cancel
           </Button>
-          <Button onClick={handleSave}>Save Automation</Button>
+          <Button onClick={handleSave} disabled={isPending}>
+            {isPending ? "Saving..." : "Save Automation"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

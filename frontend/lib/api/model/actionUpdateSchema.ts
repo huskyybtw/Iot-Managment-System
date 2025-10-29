@@ -6,7 +6,12 @@
  */
 import type { ActionType } from './actionType';
 
-export interface ActionCreateSchema {
+export interface ActionUpdateSchema {
+  /**
+   * @minimum -2147483648
+   * @maximum 2147483647
+   */
+  id: number;
   /**
    * EMAIL: email
    * @maxLength 20

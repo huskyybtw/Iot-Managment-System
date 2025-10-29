@@ -39,7 +39,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import axios from "axios";
+import { Loading } from "@/components/common/loading";
+import { ErrorMessage } from "@/components/common/error";
 
 export default function DevicesPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -69,19 +70,13 @@ export default function DevicesPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading devices...
-      </div>
-    );
+    return <Loading message="Loading devices..." />;
   }
+
   if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-red-500">
-        Error loading devices
-      </div>
-    );
+    return <ErrorMessage message="Error loading devices" />;
   }
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="mx-auto max-w-7xl space-y-6">
