@@ -2,28 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { EditAutomationDialog } from "@/components/automation/edit-automation-dialog";
-import { useAutomationsAutomationGet } from "@/lib/api/automations/automations";
-import type { AutomationResponseSchema } from "@/lib/api/model";
+import {
+  useAutomationsAutomationGet,
+  useGetAutomationAutomationIdGet,
+} from "@/lib/api/automations/automations";
+import type {
+  AutomationResponseSchema,
+  AutomationWithTriggersSchema,
+} from "@/lib/api/model";
 import { Loading } from "@/components/common/loading";
 import { ErrorMessage } from "@/components/common/error";
-import { AutomationStatsCards } from "./automation-stats-cards";
 import { AutomationSelectionSection } from "./automation-selection-section";
 import { AutomationHistorySection } from "./automation-history-section";
-
-interface Trigger {
-  condition: string;
-  action: string;
-  target: string;
-}
-
-interface AutomationWithTriggers extends AutomationResponseSchema {
-  device?: string;
-  status?: string;
-  description?: string;
-  triggers: Trigger[];
-  lastTriggered?: string;
-  triggerCount?: number;
-}
 
 interface AutomationViewProps {
   initialAutomationId?: number;
@@ -40,8 +30,24 @@ export function AutomationView({ initialAutomationId }: AutomationViewProps) {
   const [selectedAutomationId, setSelectedAutomationId] = useState<
     number | null
   >(null);
+  const [timeframe, setTimeframe] = useState<number>(2592000); // 30 days default
   const [isEditAutomationDialogOpen, setIsEditAutomationDialogOpen] =
     useState(false);
+
+  // Fetch detailed automation with triggers
+  const {
+    data: automationWithTriggersData,
+    isLoading: isLoadingDetails,
+    error: detailsError,
+  } = useGetAutomationAutomationIdGet(
+    selectedAutomationId ?? 0,
+    { timeframe },
+    {
+      query: {
+        enabled: selectedAutomationId !== null,
+      },
+    }
+  );
 
   // Set initial automation when data loads
   useEffect(() => {
@@ -63,43 +69,32 @@ export function AutomationView({ initialAutomationId }: AutomationViewProps) {
     return <ErrorMessage message="No automations found" />;
   }
 
-  // Enrich automations with UI-specific data
-  const enrichedAutomations: AutomationWithTriggers[] = automations.map(
-    (automation) => ({
-      ...automation,
-      device: `Sensor ${automation.sensor_id}`, // Could fetch sensor details later
-      status: "active", // Could be added to API later
-      description: `Send notification when sensor value is ${automation.condition} ${automation.on_value}`,
-      triggers: automation.actions.map((action) => ({
-        condition: `Value ${automation.condition} ${automation.on_value}`,
-        action: action.type === "email" ? "Send Email" : action.type,
-        target: action.target,
-      })),
-      lastTriggered: "Unknown", // Would need trigger history from API
-      triggerCount: 0, // Would need trigger history from API
-    })
-  );
-
-  const selectedAutomation = enrichedAutomations.find(
-    (a) => a.id === selectedAutomationId
-  );
-
   const selectedAutomationRaw = automations.find(
     (a) => a.id === selectedAutomationId
   );
 
+  const automationWithTriggers = automationWithTriggersData?.data;
+
   return (
     <>
       <AutomationSelectionSection
-        automations={enrichedAutomations}
+        automations={automations}
         selectedAutomationId={selectedAutomationId}
         onAutomationChange={setSelectedAutomationId}
         onEditClick={() => setIsEditAutomationDialogOpen(true)}
-        hasSelectedAutomation={!!selectedAutomation}
+        hasSelectedAutomation={!!selectedAutomationId}
+        timeframe={timeframe}
+        onTimeframeChange={setTimeframe}
       />
 
-      {selectedAutomation && (
-        <AutomationHistorySection automation={selectedAutomation} />
+      {isLoadingDetails && <Loading message="Loading automation details..." />}
+
+      {detailsError && (
+        <ErrorMessage message="Error loading automation details" />
+      )}
+
+      {automationWithTriggers && !isLoadingDetails && (
+        <AutomationHistorySection automation={automationWithTriggers} />
       )}
 
       <EditAutomationDialog

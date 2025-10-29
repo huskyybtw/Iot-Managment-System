@@ -42,6 +42,9 @@ export default function AutomationPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [automationToDelete, setAutomationToDelete] =
     useState<AutomationResponseSchema | null>(null);
+  const [expandedActions, setExpandedActions] = useState<
+    Record<number, boolean>
+  >({});
 
   const { data, isLoading, error } = useAutomationsAutomationGet({
     search: searchQuery || undefined,
@@ -49,6 +52,14 @@ export default function AutomationPage() {
   const automations = data?.data ?? [];
 
   const router = useRouter();
+
+  const toggleActions = (automationId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedActions((prev) => ({
+      ...prev,
+      [automationId]: !prev[automationId],
+    }));
+  };
 
   const handleDelete = (
     automation: AutomationResponseSchema,
@@ -203,11 +214,25 @@ export default function AutomationPage() {
                       <div className="space-y-2 rounded-lg border bg-muted/30 p-4">
                         <div className="flex items-center gap-2">
                           <ActionIcon className="size-4 text-accent" />
-                          <span className="text-sm font-semibold">Actions</span>
+                          <span className="text-sm font-semibold">
+                            Actions ({automation.actions.length})
+                          </span>
                         </div>
-                        <div className="space-y-1.5 text-sm">
-                          {automation.actions.map((action, idx) => (
-                            <div key={idx} className="space-y-1.5">
+                        <div className="space-y-3 text-sm">
+                          {/* Show only first action or all if expanded */}
+                          {(expandedActions[automation.id]
+                            ? automation.actions
+                            : automation.actions.slice(0, 1)
+                          ).map((action, idx) => (
+                            <div
+                              key={idx}
+                              className={`space-y-1.5 ${
+                                idx > 0 ? "border-t pt-3" : ""
+                              }`}
+                            >
+                              <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-primary">
+                                <span>Action {idx + 1}</span>
+                              </div>
                               <div className="flex items-center justify-between">
                                 <span className="text-muted-foreground">
                                   Type:
@@ -220,7 +245,7 @@ export default function AutomationPage() {
                                 <span className="text-muted-foreground">
                                   Target:
                                 </span>
-                                <span className="font-medium">
+                                <span className="font-medium truncate max-w-[200px]">
                                   {action.target}
                                 </span>
                               </div>
@@ -229,13 +254,35 @@ export default function AutomationPage() {
                                   <span className="text-muted-foreground">
                                     Value:
                                   </span>
-                                  <span className="font-medium">
+                                  <span className="font-medium truncate max-w-[200px]">
                                     {action.value}
                                   </span>
                                 </div>
                               )}
                             </div>
                           ))}
+
+                          {/* Show expand/collapse button if more than 1 action */}
+                          {automation.actions.length > 1 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 text-xs w-full"
+                              onClick={(e) => toggleActions(automation.id, e)}
+                            >
+                              {expandedActions[automation.id]
+                                ? `Hide ${
+                                    automation.actions.length - 1
+                                  } action${
+                                    automation.actions.length - 1 > 1 ? "s" : ""
+                                  }`
+                                : `Show ${
+                                    automation.actions.length - 1
+                                  } more action${
+                                    automation.actions.length - 1 > 1 ? "s" : ""
+                                  }`}
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>

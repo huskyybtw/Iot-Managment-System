@@ -9,23 +9,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-interface Automation {
-  id: number;
-  name: string;
-  device?: string;
-  status?: string;
-  description?: string;
-  lastTriggered?: string;
-  triggerCount?: number;
-}
+import type { AutomationResponseSchema } from "@/lib/api/model";
 
 interface AutomationSelectionSectionProps {
-  automations: Automation[];
+  automations: AutomationResponseSchema[];
   selectedAutomationId: number | null;
   onAutomationChange: (automationId: number) => void;
   onEditClick: () => void;
   hasSelectedAutomation: boolean;
+  timeframe: number;
+  onTimeframeChange: (timeframe: number) => void;
 }
 
 export function AutomationSelectionSection({
@@ -34,6 +27,8 @@ export function AutomationSelectionSection({
   onAutomationChange,
   onEditClick,
   hasSelectedAutomation,
+  timeframe,
+  onTimeframeChange,
 }: AutomationSelectionSectionProps) {
   return (
     <Card>
@@ -48,32 +43,46 @@ export function AutomationSelectionSection({
           )}
         </div>
       </CardHeader>
-      <CardContent>
-        <Select
-          value={selectedAutomationId?.toString() || ""}
-          onValueChange={(value) => onAutomationChange(Number(value))}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {automations.map((automation) => (
-              <SelectItem key={automation.id} value={automation.id.toString()}>
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant={
-                      automation.status === "active" ? "default" : "secondary"
-                    }
-                    className="text-xs"
+      <CardContent className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Automation</label>
+            <Select
+              value={selectedAutomationId?.toString() || ""}
+              onValueChange={(value) => onAutomationChange(Number(value))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {automations.map((automation) => (
+                  <SelectItem
+                    key={automation.id}
+                    value={automation.id.toString()}
                   >
-                    {automation.status || "inactive"}
-                  </Badge>
-                  <span>{automation.name}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+                    {automation.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Timeframe</label>
+            <Select
+              value={timeframe.toString()}
+              onValueChange={(value) => onTimeframeChange(Number(value))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="86400">Last 24 Hours</SelectItem>
+                <SelectItem value="604800">Last 7 Days</SelectItem>
+                <SelectItem value="2592000">Last 30 Days</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
