@@ -7,12 +7,15 @@
 
 export * from './actionCreateSchema';
 export * from './actionResponseSchema';
+export * from './actionTriggerResponseSchema';
 export * from './actionType';
 export * from './actionUpdateSchema';
+export * from './actionWithTriggersSchema';
 export * from './authResponseSchema';
 export * from './automationCreateSchema';
 export * from './automationResponseSchema';
 export * from './automationUpdateSchema';
+export * from './automationWithTriggersSchema';
 export * from './automationsAutomationGetParams';
 export * from './conditionType';
 export * from './deviceAttach';
@@ -24,6 +27,7 @@ export * from './deviceResponseUserId';
 export * from './deviceUpdate';
 export * from './deviceUpdateLabel';
 export * from './devicesDevicesGetParams';
+export * from './getAutomationAutomationIdGetParams';
 export * from './hTTPValidationError';
 export * from './sensorCreate';
 export * from './sensorCreateDeviceId';

@@ -4,6 +4,7 @@ from app.schemas.action_schema import (
     ActionCreateSchema,
     ActionResponseSchema,
     ActionUpdateSchema,
+    ActionWithTriggersSchema,
 )
 
 BaseAutomationResponseSchema = pydantic_model_creator(
@@ -15,6 +16,10 @@ BaseAutomationResponseSchema = pydantic_model_creator(
 
 class AutomationResponseSchema(BaseAutomationResponseSchema):
     actions: list[ActionResponseSchema]
+
+
+class AutomationWithTriggersSchema(BaseAutomationResponseSchema):
+    actions: list[ActionWithTriggersSchema]
 
 
 BaseAutomationCreateSchema = pydantic_model_creator(

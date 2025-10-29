@@ -5,8 +5,9 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ActionType } from './actionType';
+import type { ActionTriggerResponseSchema } from './actionTriggerResponseSchema';
 
-export interface ActionResponseSchema {
+export interface ActionWithTriggersSchema {
   /**
    * @minimum -2147483648
    * @maximum 2147483647
@@ -21,4 +22,5 @@ export interface ActionResponseSchema {
   target: string;
   /** @maxLength 255 */
   value: string;
+  triggers: ActionTriggerResponseSchema[];
 }

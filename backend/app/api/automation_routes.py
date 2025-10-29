@@ -3,12 +3,17 @@ from app.models.automation_model import Automation
 from app.common.auth import current_user
 from app.common.pagination import PaginationParams, apply_pagination
 from app.models.action_model import Action
+from app.models.action_trigger_model import ActionTrigger
 from app.schemas.automation_schema import (
     AutomationResponseSchema,
     AutomationCreateSchema,
     AutomationUpdateSchema,
+    AutomationWithTriggersSchema,
 )
+from app.schemas.action_schema import ActionResponseSchema
+from app.schemas.action_trigger_schema import ActionTriggerResponseSchema
 from tortoise.transactions import in_transaction
+from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/automation", tags=["automations"])
 
@@ -22,6 +27,45 @@ async def automations(
         query = query.filter(name__icontains=pagination.search)
     query = apply_pagination(query, pagination)
     return await AutomationResponseSchema.from_queryset(query)
+
+
+@router.get("/{id}", response_model=AutomationWithTriggersSchema)
+async def get_automation(id: int, timeframe: int = 2592000, user=Depends(current_user)):
+    automation = (
+        await Automation.filter(id=id, user=user).prefetch_related("actions").first()
+    )
+    if not automation:
+        raise HTTPException(status_code=404, detail="Automation not found")
+
+    # Calculate time threshold
+    time_threshold = datetime.now() - timedelta(seconds=timeframe)
+
+    # Fetch actions with triggers within timeframe
+    actions_with_triggers = []
+    for action in automation.actions:
+        # Fetch triggers for this action within timeframe
+        triggers = await ActionTrigger.filter(
+            action=action, timestamp__gte=time_threshold
+        ).all()
+
+        # Convert triggers to schema
+        triggers_list = [
+            await ActionTriggerResponseSchema.from_tortoise_orm(trigger)
+            for trigger in triggers
+        ]
+
+        # Build action dict with triggers
+        action_dict = await ActionResponseSchema.from_tortoise_orm(action)
+        action_with_triggers = action_dict.model_dump()
+        action_with_triggers["triggers"] = triggers_list
+        actions_with_triggers.append(action_with_triggers)
+
+    # Build response
+    automation_base = await AutomationResponseSchema.from_tortoise_orm(automation)
+    automation_dict = automation_base.model_dump()
+    automation_dict["actions"] = actions_with_triggers
+
+    return automation_dict
 
 
 @router.post("/", response_model=AutomationResponseSchema)

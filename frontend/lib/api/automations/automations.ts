@@ -34,7 +34,9 @@ import type {
   AutomationCreateSchema,
   AutomationResponseSchema,
   AutomationUpdateSchema,
+  AutomationWithTriggersSchema,
   AutomationsAutomationGetParams,
+  GetAutomationAutomationIdGetParams,
   HTTPValidationError
 } from '.././model';
 
@@ -195,6 +197,104 @@ export const useCreateAutomationPost = <TError = AxiosError<HTTPValidationError>
       return useMutation(mutationOptions, queryClient);
     }
     /**
+ * @summary Get Automation
+ */
+export const getAutomationAutomationIdGet = (
+    id: number,
+    params?: GetAutomationAutomationIdGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<AutomationWithTriggersSchema>> => {
+    
+    
+    return axios.get(
+      `http://127.0.0.1:8000/automation/${id}`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+
+
+
+export const getGetAutomationAutomationIdGetQueryKey = (id?: number,
+    params?: GetAutomationAutomationIdGetParams,) => {
+    return [
+    `http://127.0.0.1:8000/automation/${id}`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetAutomationAutomationIdGetQueryOptions = <TData = Awaited<ReturnType<typeof getAutomationAutomationIdGet>>, TError = AxiosError<HTTPValidationError>>(id: number,
+    params?: GetAutomationAutomationIdGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAutomationAutomationIdGet>>, TError, TData>>, axios?: AxiosRequestConfig}
+) => {
+
+const {query: queryOptions, axios: axiosOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAutomationAutomationIdGetQueryKey(id,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAutomationAutomationIdGet>>> = ({ signal }) => getAutomationAutomationIdGet(id,params, { signal, ...axiosOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAutomationAutomationIdGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAutomationAutomationIdGetQueryResult = NonNullable<Awaited<ReturnType<typeof getAutomationAutomationIdGet>>>
+export type GetAutomationAutomationIdGetQueryError = AxiosError<HTTPValidationError>
+
+
+export function useGetAutomationAutomationIdGet<TData = Awaited<ReturnType<typeof getAutomationAutomationIdGet>>, TError = AxiosError<HTTPValidationError>>(
+ id: number,
+    params: undefined |  GetAutomationAutomationIdGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAutomationAutomationIdGet>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAutomationAutomationIdGet>>,
+          TError,
+          Awaited<ReturnType<typeof getAutomationAutomationIdGet>>
+        > , 'initialData'
+      >, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAutomationAutomationIdGet<TData = Awaited<ReturnType<typeof getAutomationAutomationIdGet>>, TError = AxiosError<HTTPValidationError>>(
+ id: number,
+    params?: GetAutomationAutomationIdGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAutomationAutomationIdGet>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAutomationAutomationIdGet>>,
+          TError,
+          Awaited<ReturnType<typeof getAutomationAutomationIdGet>>
+        > , 'initialData'
+      >, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAutomationAutomationIdGet<TData = Awaited<ReturnType<typeof getAutomationAutomationIdGet>>, TError = AxiosError<HTTPValidationError>>(
+ id: number,
+    params?: GetAutomationAutomationIdGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAutomationAutomationIdGet>>, TError, TData>>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get Automation
+ */
+
+export function useGetAutomationAutomationIdGet<TData = Awaited<ReturnType<typeof getAutomationAutomationIdGet>>, TError = AxiosError<HTTPValidationError>>(
+ id: number,
+    params?: GetAutomationAutomationIdGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAutomationAutomationIdGet>>, TError, TData>>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAutomationAutomationIdGetQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
  * @summary Update
  */
 export const updateAutomationIdPatch = (
