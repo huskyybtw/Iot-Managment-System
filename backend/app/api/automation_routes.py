@@ -12,7 +12,7 @@ from tortoise.transactions import in_transaction
 router = APIRouter(prefix="/automation", tags=["automations"])
 
 
-@router.get("/", response_model=AutomationResponseSchema)
+@router.get("/", response_model=list[AutomationResponseSchema])
 async def automations(
     user=Depends(current_user), pagination: PaginationParams = Depends()
 ):
@@ -25,20 +25,19 @@ async def automations(
 
 @router.post("/", response_model=AutomationResponseSchema)
 async def create(input: AutomationCreateSchema, user=Depends(current_user)):
-    input_dict = input.model_dump(exclude={"actions"})
-    actions_data = input.model_dump().get("actions", [])
-
-    if not actions_data or len(actions_data) == 0:
+    if not input.actions or len(input.actions) == 0:
         raise HTTPException(status_code=400, detail="At least one action is required")
 
     async with in_transaction() as connection:
+        input_dict = input.model_dump(exclude={"actions"})
         automation = await Automation.create(
             **input_dict, user=user, using_db=connection
         )
 
-        for action_data in actions_data:
+        for action in input.actions:
+            action_dict = action.model_dump()
             await Action.create(
-                **action_data, automation=automation, using_db=connection
+                **action_dict, automation=automation, using_db=connection
             )
 
         automation = (

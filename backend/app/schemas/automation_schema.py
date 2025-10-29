@@ -1,18 +1,29 @@
 from tortoise.contrib.pydantic import pydantic_model_creator
 from app.models.automation_model import Automation
+from app.schemas.action_schema import ActionCreateSchema, ActionResponseSchema
 
-AutomationResponseSchema = pydantic_model_creator(
+BaseAutomationResponseSchema = pydantic_model_creator(
     Automation,
     name="AutomationResponseSchema",
-    exclude=("user", "sensor", "actions.triggers"),
+    exclude=("user", "sensor", "actions.triggers", "actions.automation"),
 )
-AutomationCreateSchema = pydantic_model_creator(
+
+
+class AutomationResponseSchema(BaseAutomationResponseSchema):
+    actions: list[ActionResponseSchema]
+
+
+BaseAutomationCreateSchema = pydantic_model_creator(
     Automation,
     name="AutomationCreateSchema",
     exclude=(
         "id",
         "user",
         "sensor",
-        "actions.triggers",
+        "actions",
     ),
 )
+
+
+class AutomationCreateSchema(BaseAutomationCreateSchema):
+    actions: list[ActionCreateSchema]

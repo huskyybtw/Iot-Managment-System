@@ -6,7 +6,7 @@
  */
 import type { DeviceResponseLabel } from './deviceResponseLabel';
 import type { DeviceResponseUserId } from './deviceResponseUserId';
-import type { AppModelsSensorModelSensor2lqljyLeaf } from './appModelsSensorModelSensor2lqljyLeaf';
+import type { SensorResponse } from './sensorResponse';
 
 export interface DeviceResponse {
   /**
@@ -20,5 +20,5 @@ export interface DeviceResponse {
   mac_address: string;
   /** @nullable */
   user_id?: DeviceResponseUserId;
-  sensors: AppModelsSensorModelSensor2lqljyLeaf[];
+  sensors: SensorResponse[];
 }

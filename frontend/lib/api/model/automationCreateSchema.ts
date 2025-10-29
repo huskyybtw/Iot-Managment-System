@@ -5,14 +5,9 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ConditionType } from './conditionType';
-import type { AppModelsActionModelActionWjuwjbLeaf } from './appModelsActionModelActionWjuwjbLeaf';
+import type { ActionCreateSchema } from './actionCreateSchema';
 
 export interface AutomationCreateSchema {
-  /**
-   * @minimum -2147483648
-   * @maximum 2147483647
-   */
-  id: number;
   /** @maxLength 255 */
   name: string;
   /**
@@ -25,7 +20,6 @@ export interface AutomationCreateSchema {
    * @maxLength 2
    */
   condition: ConditionType;
-  actions: AppModelsActionModelActionWjuwjbLeaf[];
   /**
    * @minimum -2147483648
    * @maximum 2147483647
@@ -36,4 +30,5 @@ export interface AutomationCreateSchema {
    * @maximum 2147483647
    */
   user_id: number;
+  actions: ActionCreateSchema[];
 }

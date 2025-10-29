@@ -1,13 +1,19 @@
 from tortoise.contrib.pydantic import pydantic_model_creator
 from app.models.device_model import Device
+from app.schemas.sensor_schema import SensorCreate, SensorResponse
 
-DeviceResponse = pydantic_model_creator(
+BaseDeviceResponse = pydantic_model_creator(
     Device,
     name="DeviceResponse",
-    exclude=("user", "sensors.automations", "sensors.sensor_values"),
+    exclude=("user", "sensors"),
 )
 
-DeviceCreate = pydantic_model_creator(
+
+class DeviceResponse(BaseDeviceResponse):
+    sensors: list[SensorResponse]
+
+
+BaseDeviceCreate = pydantic_model_creator(
     Device,
     name="DeviceCreate",
     exclude=(
@@ -15,19 +21,22 @@ DeviceCreate = pydantic_model_creator(
         "label",
         "user_id",
         "user",
-        "sensors.automations",
-        "sensors.sensor_values",
-        "sensors.id",
-        "sensors.device",
+        "sensors",
     ),
 )
+
+
+class DeviceCreate(BaseDeviceCreate):
+    sensors: list[SensorCreate]
+
 
 DeviceAttach = pydantic_model_creator(
     Device,
     name="DeviceAttach",
     exclude_readonly=True,
-    exclude=("user", "user_id", "mac_address"),
+    exclude=("user", "user_id", "mac_address", "sensors"),
 )
+
 DeviceUpdate = pydantic_model_creator(
     Device,
     name="DeviceUpdate",
@@ -35,5 +44,6 @@ DeviceUpdate = pydantic_model_creator(
     exclude=(
         "user_id",
         "mac_address",
+        "sensors",
     ),
 )

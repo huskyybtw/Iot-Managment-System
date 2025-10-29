@@ -5,4 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type AppModelsSensorModelSensor2lqljyLeafPinIdAnyOf = { [key: string]: unknown };
+/**
+ * @nullable
+ */
+export type SensorCreateLabel = string | null | null;

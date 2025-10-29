@@ -4,14 +4,9 @@
  * FastAPI
  * OpenAPI spec version: 0.1.0
  */
-import type { ActionType } from "./actionType";
+import type { ActionType } from './actionType';
 
-export interface AppModelsActionModelActionWjuwjbLeaf {
-  /**
-   * @minimum -2147483648
-   * @maximum 2147483647
-   */
-  id: number;
+export interface ActionCreateSchema {
   /**
    * EMAIL: email
    * @maxLength 20
@@ -21,4 +16,9 @@ export interface AppModelsActionModelActionWjuwjbLeaf {
   target: string;
   /** @maxLength 255 */
   value: string;
+  /**
+   * @minimum -2147483648
+   * @maximum 2147483647
+   */
+  automation_id: number;
 }

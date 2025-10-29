@@ -8,4 +8,4 @@
 /**
  * @nullable
  */
-export type AppModelsSensorModelSensor2lqljyLeafLabel = string | null | null;
+export type SensorCreateDeviceId = number | null | null;

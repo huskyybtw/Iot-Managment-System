@@ -46,7 +46,7 @@ import type {
  */
 export const automationsAutomationGet = (
     params?: AutomationsAutomationGetParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<AutomationResponseSchema>> => {
+ ): Promise<AxiosResponse<AutomationResponseSchema[]>> => {
     
     
     return axios.get(

@@ -5,7 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ConditionType } from './conditionType';
-import type { AppModelsActionModelActionWjuwjbLeaf } from './appModelsActionModelActionWjuwjbLeaf';
+import type { ActionResponseSchema } from './actionResponseSchema';
 
 export interface AutomationResponseSchema {
   /**
@@ -25,7 +25,7 @@ export interface AutomationResponseSchema {
    * @maxLength 2
    */
   condition: ConditionType;
-  actions: AppModelsActionModelActionWjuwjbLeaf[];
+  actions: ActionResponseSchema[];
   /**
    * @minimum -2147483648
    * @maximum 2147483647

@@ -32,6 +32,7 @@ import type {
 
 import type {
   DeviceAttach,
+  DeviceCreate,
   DeviceResponse,
   DeviceUpdate,
   DevicesDevicesGetParams,
@@ -135,6 +136,67 @@ export function useDevicesDevicesGet<TData = Awaited<ReturnType<typeof devicesDe
 
 
 /**
+ * @summary Create
+ */
+export const createDevicesPost = (
+    deviceCreate: DeviceCreate, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<DeviceResponse>> => {
+    
+    
+    return axios.post(
+      `http://127.0.0.1:8000/devices/`,
+      deviceCreate,options
+    );
+  }
+
+
+
+export const getCreateDevicesPostMutationOptions = <TError = AxiosError<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDevicesPost>>, TError,{data: DeviceCreate}, TContext>, axios?: AxiosRequestConfig}
+): UseMutationOptions<Awaited<ReturnType<typeof createDevicesPost>>, TError,{data: DeviceCreate}, TContext> => {
+
+const mutationKey = ['createDevicesPost'];
+const {mutation: mutationOptions, axios: axiosOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, axios: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createDevicesPost>>, {data: DeviceCreate}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createDevicesPost(data,axiosOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateDevicesPostMutationResult = NonNullable<Awaited<ReturnType<typeof createDevicesPost>>>
+    export type CreateDevicesPostMutationBody = DeviceCreate
+    export type CreateDevicesPostMutationError = AxiosError<HTTPValidationError>
+
+    /**
+ * @summary Create
+ */
+export const useCreateDevicesPost = <TError = AxiosError<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDevicesPost>>, TError,{data: DeviceCreate}, TContext>, axios?: AxiosRequestConfig}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createDevicesPost>>,
+        TError,
+        {data: DeviceCreate},
+        TContext
+      > => {
+
+      const mutationOptions = getCreateDevicesPostMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
  * @summary Device
  */
 export const deviceDevicesIdGet = (
